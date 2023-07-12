@@ -4,10 +4,12 @@
  *  @email: rosbitskyy@gmail.com
  */
 
+const interfaces = require('os').networkInterfaces();
 const events = require("./EventBus");
 const RedisEvents = require("./RedisEvents");
 
 class Pm2Events {
+
     #redis;
     #connections = new Map();
 
@@ -16,7 +18,10 @@ class Pm2Events {
      * @param {{}|Object|RedisOptions} RedisOptions
      */
     constructor(RedisOptions = {}) {
-        const OriginatorId = (this.interface.mac + this.interface.address).hash();
+        const unrealId = new Date().getTime();
+        const pm2_process_id = Number(process.env.pm_id || unrealId);
+        const pm2_process_name = (process.env.name || 'unrealName' + pm2_process_id);
+        const OriginatorId = ([this.interface.mac, this.interface.address, pm2_process_name].toString());
         this.#redis = new RedisEvents(OriginatorId, RedisOptions);
         this.debug = RedisOptions.debug;
         // will listen external subscribed incoming messages
@@ -39,7 +44,6 @@ class Pm2Events {
      * @return {{}|NetworkInterfaceInfo}
      */
     #_interface = () => {
-        const interfaces = require('os').networkInterfaces();
         for (let key of Object.keys(interfaces)) {
             const found = interfaces[key].filter(it => it.family === 'IPv4' && !it.internal)
             for (let it of found) {
