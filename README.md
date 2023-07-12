@@ -1,15 +1,17 @@
+🇺🇦***PM2 Instances Events***
+
 Data exchange between instances of pm2
 services located on decentralized servers (virtual machines), etc.
 
 The usual mechanism embedded in the process notification 
-```
+`
 process.on('message', async function (packet){
-    // do something with packet.data
+    /* do something with packet.data */
 }
-``` 
+`
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
-An example of data exchange between different instances 
+**An example** of data exchange between different instances 
 (decentralized or not - it doesn't matter)
 ```ecmascript 6
 const Events = require('node-pm2-events');
