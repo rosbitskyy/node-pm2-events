@@ -1,6 +1,6 @@
 {
   "name": "node-pm2-events",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "PM2 decentralized instances eventbus with web socket addon",
   "main": "index.js",
   "scripts": {
