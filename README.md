@@ -87,4 +87,4 @@ routes.push({
 ```
 
 
-Redis is used for exchange: [ioredis](https://www.npmjs.com/package/ioredis)
+[Redis](https://redis.io/docs/getting-started/) is used for exchange: [ioredis](https://www.npmjs.com/package/ioredis)
