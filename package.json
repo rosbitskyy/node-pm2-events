@@ -6,6 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rosbitskyy/node-pm2-events.git"
+  },
   "keywords": [
     "nodejs",
     "pm2",
