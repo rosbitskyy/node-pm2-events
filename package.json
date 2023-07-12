@@ -1,0 +1,22 @@
+{
+  "name": "node-pm2-events",
+  "version": "1.0.2",
+  "description": "PM2 decentralized instances eventbus with web socket addon",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "pm2",
+    "events",
+    "web",
+    "socket",
+    "fastify"
+  ],
+  "author": "rosbitskyy ruslan",
+  "license": "MIT",
+  "dependencies": {
+    "ioredis": "^5.3.2"
+  }
+}
