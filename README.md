@@ -7,7 +7,7 @@ The usual mechanism embedded in the process notification
 ```ecmascript 6
 process.on('message', async function (packet){
     /* do something with packet.data */
-}
+})
 ```
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
@@ -17,8 +17,8 @@ does not include distributed virtual instances, but locally causes a pm2 instanc
 EventBus.on('channelName', (m) => {
     console.log('\tinternal:', m)
 })
-EventBus.send('channelName', {a: 'qwerty'}) // work
-EventBus.send('channelName-2', {a: 'qwerty'}) // not work - not subscribed
+EventBus.send('channelName', {awesome: 'data'}) // work
+EventBus.send('channelName-2', {data: 'awesome'}) // not work - not subscribed
 ```
 
 **An example** of data exchange between different instances 
@@ -46,7 +46,7 @@ EventBus.transport.on('channelName', (message) => {
 EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
 })
-EventBus.transport.send('channelName', {action: 'some action'});
+EventBus.transport.send('channelName', {some: 'object data'});
 ```
 
 **Use with [Fastify](https://fastify.dev/) and websocket**
@@ -101,9 +101,9 @@ EventBus.websocket.messagesHandler = (message, session, connection) => {
     // or do something and send result
     // ...
     // to the current client (from somewhere else)
-    EventBus.websocket.sendTo(session._id, {some: 'result', to: 'client'});
+    EventBus.websocket.sendTo(session._id, {some: 'data', to: 'client'});
     // or
-    connection.socket.send({some: 'result', to: 'client'})
+    connection.socket.send({some: 'data', to: 'client'})
 }
 ```
 
