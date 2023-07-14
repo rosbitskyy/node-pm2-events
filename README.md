@@ -11,49 +11,49 @@ process.on('message', async function (packet){
 `
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
+**Internal events**
+```ecmascript 6
+const EventBus = require('node-pm2-events');
+// internal events
+EventBus.on('target', (m) => {
+    console.log('\tinternal:', m)
+})
+EventBus.send('target', {a: 'qwerty'}) // work
+EventBus.send('target2', {a: 'qwerty'}) // not work - not subscribed
+```
+
 **An example** of data exchange between different instances 
 (decentralized or not - it doesn't matter)
 ```ecmascript 6
-const Events = require('node-pm2-events');
+const EventBus = require('node-pm2-events');
 
+const Config = {
+    redis: {
+        host: 'localhost',
+        password: "your password",
+        keepAlive: true,
+        port: 6379
+    },
+    isDev: true
+}
+
+// with distributed events (example: pm2 instances, single decentralized servers)
+EventBus.transport.initialize({...Config.redis, debug: true});
 const channelName = 'AweSome Channel Or Event Name';
-
-// pm2 some instances test
-const redisExternalSenderServer = new Events.Redis('some-server-1', {...Config.redis, debug: true});
-const redisReceiver = new Events.Redis('other-server-2', {...Config.redis, debug: true});
-
-redisReceiver.onMessage(async (channel, message) => {
-    console.log(redisReceiver.originatorId, 'receive message', channel, message)
-}).subscribe(channelName);
-
-let count = 0;
-const timer = setInterval(() => {
-    const v = {action: 'contract', obj: {_d: 2}, _id: String(Date.now()).hash()}
-    redisExternalSenderServer.publish(channelName, v);
-    if (count++ > 100) process.exit();
-}, 10);
+EventBus.transport.on(channelName, (message) => {
+    console.log('\tcb :', message)
+})
+EventBus.transport.on(channelName, (message) => {
+    console.log('\tcb :', message)
+})
+EventBus.transport.send(channelName, {action: 'some action'});
 ```
 
-**Usage example with websocket**
-```ecmascript 6
-const Events = require('node-pm2-events');
-
-const channelName = 'AweSome Channel Or Event Name';
-const pm2 = new Events.Pm2({...Config.redis, debug: true});
-// Listen to all external events and broadcast them locally 
-// to all connected clients via websocket
-pm2.addEventListener(channelName);
-
-// Sending a local event anywhere in the project.
-// Will be caught locally and passed to other pm2 instances and attempt 
-// to pass to all connected websocket clients.
-pm2.dispatch(channelName, {awesome: 'something'});
-```
-
-**Use with [Fastify](https://fastify.dev/)**
+**Use with [Fastify](https://fastify.dev/) and websocket**
 
 * Add [fastify web socket plugin](https://github.com/fastify/fastify-websocket)
 ```ecmascript 6
+const EventBus = require('node-pm2-events');
 const fastify = require('fastify')(Config.fastify || {
     logger: {level: Config.isDev ? 'info' : 'warn'},
     trustProxy: true,
@@ -64,26 +64,47 @@ fastify.register(require('@fastify/websocket'), {
         maxPayload: 10000 // bytes
     }
 });
+fastify.after(async () => {
+    await EventBus.transport.initialize({...Config.redis, debug: Config.isDev}).waitingConnection();
+    router.register(fastify); // register your routes - [https://fastify.dev/docs/latest/Reference/Routes]
+});
 // ....
+```
 
-// then add some route
-const channelName = 'AweSome Channel Or Event Name';
-const pm2 = new Events.Pm2({...Config.redis, debug: true});
-pm2.addEventListener(channelName);
-// ....
-
+**Add festify routes**
+```ecmascript 6
+//...
+const routes = [];
+// From internal to self sockets and emit to other servers, and his sockets
+// From external to self sockets
+EventBus.websocket.registerDuplexEvents('channelName');
 routes.push({
     method: 'GET',
-    url: '/api/wss',
-    preHandler: wssAuth, // check auth
+    url: '/api/websocket/endpoint',
+    preHandler: auth, // YOUR Auth Handler method - generate session object with session _id!!!
     handler: (req, reply) => {
-        // this will handle http requests or... >> send 404
         reply.code(404).send();
     },
-    wsHandler: async (connection, req) => {
-        pm2.wsHandler(connection, req);
-    }
-})
+    wsHandler: (connection, req) => EventBus.websocket.wsHandler(connection, req)
+});
+```
+
+**Handle messages from clients sockets**
+```ecmascript 6
+// override: handle messages from clients sockets
+EventBus.websocket.messagesHandler = (message, session, connection) => {
+    // do something with message ...
+    // ...
+    // send internal broadcast
+    EventBus.send('toSomeWebsocketChannelHandler', message);
+    // ...
+    // or do something and send result
+    // ...
+    // to the current client (from somewhere else)
+    EventBus.websocket.sendTo(session._id, {some: 'result', to: 'client'});
+    // or
+    connection.socket.send({some: 'result', to: 'client'})
+}
 ```
 
 

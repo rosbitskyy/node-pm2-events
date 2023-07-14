@@ -50,7 +50,6 @@ async function doit() {
     // });
     //
     // const routes = [];
-
     // // From internal to self sockets and emit to other servers, and his sockets
     // // From external to self sockets
     // EventBus.websocket.registerDuplexEvents(channelName);
@@ -64,7 +63,7 @@ async function doit() {
     //     wsHandler: (connection, req) => EventBus.websocket.wsHandler(connection, req)
     // });
 
-    // // handle messages from clients sockets
+    // // override: handle messages from clients sockets
     // EventBus.websocket.messagesHandler = (message, session, connection) => {
     //     // do something with message ...
     //     // ...
