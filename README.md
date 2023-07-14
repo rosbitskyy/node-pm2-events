@@ -83,7 +83,7 @@ routes.push({
     url: '/api/websocket/endpoint',
     preHandler: auth, // YOUR Auth Handler method - generate session object with session _id!!!
     handler: (req, reply) => {
-        reply.code(404).send();
+        reply.code(404).send(); // or something else for GET response...
     },
     wsHandler: (connection, req) => EventBus.websocket.wsHandler(connection, req)
 });
