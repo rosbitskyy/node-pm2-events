@@ -13,20 +13,17 @@ does not include distributed virtual instances, but locally causes a pm2 instanc
 
 **Internal events**
 ```ecmascript 6
-const EventBus = require('node-pm2-events');
 // internal events
-EventBus.on('target', (m) => {
+EventBus.on('channelName', (m) => {
     console.log('\tinternal:', m)
 })
-EventBus.send('target', {a: 'qwerty'}) // work
-EventBus.send('target2', {a: 'qwerty'}) // not work - not subscribed
+EventBus.send('channelName', {a: 'qwerty'}) // work
+EventBus.send('channelName-2', {a: 'qwerty'}) // not work - not subscribed
 ```
 
 **An example** of data exchange between different instances 
 (decentralized or not - it doesn't matter)
 ```ecmascript 6
-const EventBus = require('node-pm2-events');
-
 const Config = {
     redis: {
         host: 'localhost',
@@ -34,26 +31,28 @@ const Config = {
         keepAlive: true,
         port: 6379
     },
-    isDev: true
+    isDev: true,
+    fastify: {
+        logger: {level: 'info'},
+        trustProxy: true,
+    }
 }
 
 // with distributed events (example: pm2 instances, single decentralized servers)
 EventBus.transport.initialize({...Config.redis, debug: true});
-const channelName = 'AweSome Channel Or Event Name';
-EventBus.transport.on(channelName, (message) => {
+EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
 })
-EventBus.transport.on(channelName, (message) => {
+EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
 })
-EventBus.transport.send(channelName, {action: 'some action'});
+EventBus.transport.send('channelName', {action: 'some action'});
 ```
 
 **Use with [Fastify](https://fastify.dev/) and websocket**
 
 * Add [fastify web socket plugin](https://github.com/fastify/fastify-websocket)
 ```ecmascript 6
-const EventBus = require('node-pm2-events');
 const fastify = require('fastify')(Config.fastify || {
     logger: {level: Config.isDev ? 'info' : 'warn'},
     trustProxy: true,
