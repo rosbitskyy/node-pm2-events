@@ -17,8 +17,8 @@ const Config = {
     isDev: true
 }
 
-Number.prototype.sleep = function () {
-    return new Promise(resolve => setTimeout(resolve, this));
+const sleep = function (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 async function doit() {
@@ -79,7 +79,7 @@ async function doit() {
     // }
 
 
-    await Number(3000).sleep()
+    await sleep(3000)
     process.exit()
 
 }

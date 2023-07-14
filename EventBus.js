@@ -4,6 +4,9 @@
  */
 
 const EventEmitter = require('events');
+const sleep = function (ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 class EventBus extends EventEmitter {
 
@@ -337,7 +340,7 @@ class Transport {
             throw new Error('We expected a variable(message) as an object - got - ' + (typeof (message)))
         }
         while (this.#publisher.status !== 'ready') {
-            await Number(this.#wto / this.#wtd).sleep(); // three times per second
+            await sleep(this.#wto / this.#wtd); // three times per second
             if (++this.#tryCount > this.#wtd) return;
         }
         this.#tryCount = 0;
