@@ -4,7 +4,8 @@
  *  @email: rosbitskyy@gmail.com
  */
 
-const Events = require('./index');
+// const EventBus = require('node-pm2-events');
+const EventBus = require('./index');
 
 const Config = {
     redis: {
@@ -13,51 +14,74 @@ const Config = {
         keepAlive: true,
         port: 6379
     },
+    isDev: true
 }
 
-const sleep = () => new Promise(resolve => setTimeout(resolve, this));
+Number.prototype.sleep = function () {
+    return new Promise(resolve => setTimeout(resolve, this));
+}
 
 async function doit() {
 
-    // 1
-    // PM@ test
-    const channelName1 = 'AweSome Channel Or Event Name #1';
-    const channelName2 = 'AweSome Channel Or Event Name #2';
-    const channelName3 = 'AweSome Channel Or Event Name #3';
+    // internal events
+    EventBus.on('target', (m) => {
+        console.log('\tinternal:', m)
+    })
+    EventBus.send('target', {a: 'qwerty'}) // work
+    EventBus.send('target2', {a: 'qwerty'}) // not work - not subscribed
 
-    const pm2 = new Events.Pm2({...Config.redis, debug: true});
-    pm2.addEventListener(channelName1);
+    // with distributed events (example: pm2 instances, single decentralized servers)
+    EventBus.transport.initialize({...Config.redis, debug: true});
+    const channelName = 'AweSome Channel Or Event Name';
+    EventBus.transport.on(channelName, (message) => {
+        console.log('\tcb :', message)
+    })
+    EventBus.transport.on(channelName, (message) => {
+        console.log('\tcb :', message)
+    })
+    EventBus.transport.send(channelName, {action: 'some action'});
 
-    await sleep(2000);
-    pm2.dispatch(channelName1, {awesome: 'something'});
-
-
-    // 2
-    // Redis test
-    const connect1 = new Events.Redis('server-1', {...Config.redis});
-    connect1.onMessage(async (channel, message) => {
-        console.log(connect1.originatorId, 'receive message', channel, message)
-    }).subscribe(channelName1);
-    connect1.subscribe(channelName2);
-    connect1.subscribe(channelName3);
-
-    const connect2 = new Events.Redis('server-2', {...Config.redis});
-    connect2.onMessage(async (channel, message) => {
-        console.log(connect2.originatorId, 'receive message', channel, message)
-    }).subscribe(channelName1);
-    connect2.subscribe(channelName2);
-    connect2.subscribe(channelName3);
-
+    // // with fastify and websockets
+    // const fastify = require('fastify')({logger: {level: 'info'}, trustProxy: true,});
+    // fastify.after(async () => {
+    //     const EventBus = require('node-pm2-events');
+    //     await EventBus.transport.initialize({...Config.redis, debug: Config.isDev}).waitingConnection();
+    //     router.register(fastify); // register your routes - [https://fastify.dev/docs/latest/Reference/Routes]
+    // });
     //
-    let count = 0;
-    const timer = setInterval(() => {
-        const v = {action: 'action1'}, v2 = {action: 'some else'};
-        connect1.publish(channelName1, v);
-        connect2.publish(channelName1, v2);
-        connect1.publish(channelName2, v);
-        connect2.publish(channelName3, v2);
-        if (count++ > 10) process.exit();
-    }, 100);
+    // const routes = [];
+
+    // // From internal to self sockets and emit to other servers, and his sockets
+    // // From external to self sockets
+    // EventBus.websocket.registerDuplexEvents(channelName);
+    // routes.push({
+    //     method: 'GET',
+    //     url: '/api/websocket/endpoint',
+    //     preHandler: auth, // YOUR Auth Handler method - generate session object with session _id!!!
+    //     handler: (req, reply) => {
+    //         reply.code(404).send();
+    //     },
+    //     wsHandler: (connection, req) => EventBus.websocket.wsHandler(connection, req)
+    // });
+
+    // // handle messages from clients sockets
+    // EventBus.websocket.messagesHandler = (message, session, connection) => {
+    //     // do something with message ...
+    //     // ...
+    //     // send internal broadcast
+    //     EventBus.send('toSomeWebsocketChannelHandler', message);
+    //     // ...
+    //     // or do something and send result
+    //     // ...
+    //     // to the current client (from somewhere else)
+    //     EventBus.websocket.sendTo(session._id, {some: 'result', to: 'client'});
+    //     // or
+    //     connection.socket.send({some: 'result', to: 'client'})
+    // }
+
+
+    await Number(3000).sleep()
+    process.exit()
 
 }
 
