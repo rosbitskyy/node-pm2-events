@@ -4,11 +4,11 @@ Data exchange between instances of pm2
 services located on decentralized servers (virtual machines), etc.
 
 The usual mechanism embedded in the process notification 
-`
+```ecmascript 6
 process.on('message', async function (packet){
     /* do something with packet.data */
 }
-`
+```
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
 **Internal events**
@@ -71,6 +71,7 @@ fastify.after(async () => {
 ```
 
 **Add festify routes**
+> local events will be relayed to your websocket connections and to decentralized servers as well
 ```ecmascript 6
 //...
 const routes = [];
