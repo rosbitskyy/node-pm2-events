@@ -4,9 +4,6 @@
  */
 
 const EventEmitter = require('events');
-const sleep = function (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 class EventBus extends EventEmitter {
 
@@ -17,7 +14,6 @@ class EventBus extends EventEmitter {
         this.transport = new Transport();
         this.websocket = new WebSocket(this);
         this.process = Process;
-        console.log(this.#name, 'initialized')
     }
 
     /**
@@ -30,6 +26,7 @@ class EventBus extends EventEmitter {
 }
 
 const {execSync} = require("child_process");
+const parse = (msg) => msg.constructor === ''.constructor ? JSON.parse(msg) : msg;
 
 class Process {
 
@@ -78,9 +75,7 @@ class Process {
             const pm2ListCmd = `pm2 id "${Process.process_name}"`;
             let rows = execSync(pm2ListCmd).toString();
             if (rows === '') rows = '[-1]';
-            //console.log(Process.#name, pm2ListCmd, '->', rows);
-            let ids = JSON.parse(`${rows}`);
-            //console.log(Process.#name, 'pm2 ids', ids);
+            let ids = parse(`${rows}`);
             ids = Array.from(new Set(ids)).reverse().filter(it => it * 1 >= 0);
             return ids;
         } catch (e) {
@@ -113,7 +108,7 @@ class Process {
 
 class WebSocket {
     #name = EventBus.name + ' ' + WebSocket.name + ' ' + Process.process_id;
-    #connections = {};
+    #connections = new Map();
 
     /**
      * @param {EventBus} eventBus
@@ -123,6 +118,7 @@ class WebSocket {
     }
 
     /**
+     * @Override Default incoming socket message
      * @param {function(message, session, connection)} callback
      */
     set messagesHandler(callback) {
@@ -131,22 +127,21 @@ class WebSocket {
     }
 
     /**
+     * Default - send internal eventbus message with channel `websocketHandler`
      * @param {object} message
      * @param {object} session - user session data
      * @param {object} connection - wss connection
      */
-    #messagesHandler = (message, session, connection) => { // by default - internal send event
+        // by default - internal send event
+    #messagesHandler = (message, session, connection) =>
         this.EventBus.send('websocketHandler', {message, session, connection});
-    };
 
     /**
      * From internal to self sockets and emit to other servers, and his sockets
      * @param {string} channel
      */
     on(channel) {
-        if (this.EventBus.transport.debug) console.log(this.#name, 'subscribe to channel:', channel);
         this.EventBus.on(channel, (message) => {
-            if (this.EventBus.transport.debug) console.log(this.#name, 'internal message:', channel, message);
             this.send(message); // catch internal event and send broadcast to connected clients
             this.EventBus.transport.send(channel, message); // send to other server instances
         });
@@ -160,9 +155,7 @@ class WebSocket {
      */
     registerDuplexEvents(channel) {
         this.on(channel);
-        this.EventBus.transport.on(channel, async (channel, message) => {
-            this.EventBus.websocket.send(message)
-        });
+        this.EventBus.transport.on(channel, async (channel, message) => this.EventBus.websocket.send(message));
     }
 
     /**
@@ -170,19 +163,12 @@ class WebSocket {
      * @param {object} connection
      * @return {Map<any, any>}
      */
-    addConnection = (id, connection) => {
-        this.#connections[id] = connection.socket;
-        if (this.EventBus.transport.debug) console.log(this.#name, 'addConnection', Object.keys(this.#connections).length);
-        return this.#connections[id];
-    }
+    addConnection = (id, connection) => this.#connections.set(id, connection);
     /**
      * @param {string} id
      * @return {boolean}
      */
-    removeConnection = (id) => {
-        delete this.#connections[id];
-        if (this.EventBus.transport.debug) console.log(this.#name, 'removeConnection', Object.keys(this.#connections).length);
-    }
+    removeConnection = (id) => this.#connections.delete(id);
 
     /**
      * @param {string|object|array} v
@@ -199,12 +185,9 @@ class WebSocket {
     send = (message) => {
         if (message) {
             message = this.stringify(message);
-            for (let id of Object.keys(this.#connections)) {
-                try {
-                    if (this.EventBus.transport.debug) console.log(this.#name, 'to socket', id);
-                    this.#connections[id].send(message);
-                } catch (e) {
-                }
+            for (let connection of this.#connections.values()) try {
+                connection.socket.send(message);
+            } catch (e) {
             }
         }
         return this;
@@ -216,11 +199,11 @@ class WebSocket {
      * @return {WebSocket}
      */
     sendTo = (id, message) => {
-        const socket = this.#connections[id];
-        if (message && socket) {
+        const connection = this.#connections.get(id);
+        if (message && connection) {
             try {
                 message = this.stringify(message);
-                socket.send(message);
+                connection.socket.send(message);
             } catch (e) {
             }
         }
@@ -228,49 +211,48 @@ class WebSocket {
     }
 
     /**
-     * @param {object} connection
-     * @param {object} req
+     * @param {object} connection - Duplex
+     * @param {object} req - Request
      * @return {WebSocket}
+     * @example
+     *  [About Fastify hooks](https://fastify.dev/docs/latest/Reference/Hooks/)
+     *  [Fastify websocket plugin](https://github.com/fastify/fastify-websocket)
      */
     wsHandler = (connection, req) => {
-        const session = req.session || {}; // after your AUTH handler (preHandler: auth, // YOUR Auth Handler method !!!)
+        // after your AUTH handler fastify hook (preHandler: your auth method)
+        const session = (req.userdata || {_id: Math.random().toString(16).substring(2)});
         const uid = session._id.toString();
         this.removeConnection(uid);
         this.addConnection(uid, connection);
         connection.setEncoding('utf8')
-        if (this.EventBus.transport.debug) console.log(new Date().toLocaleTimeString(),
-            this.#name, 'ws connected', session.ip, uid);
-        this.#connections[uid].on('message', (message) => {
+        connection.socket.pong = () => connection.socket.send(JSON.stringify({type: 'pong', data: '🇺🇦'}));
+        connection.socket.on('message', (message) => {
             try {
-                message = JSON.parse(message);
-                if (message.type === 'ping') {
-                    // connection.socket.send(JSON.stringify({type: 'pong', data: '🇺🇦'})); // or like ->
-                    this.#connections[uid].send(JSON.stringify({type: 'pong', data: '🇺🇦'})); // same like <-
-                } else if (this.#messagesHandler) this.#messagesHandler(message, session, connection)
+                message = parse(message);
+                if (message.type === 'ping') connection.socket.pong();
+                else if (this.#messagesHandler) this.#messagesHandler(message, session, connection)
             } catch (e) {
             }
         });
-        this.#connections[uid].on('close', () => {
-            this.removeConnection(uid);
-            if (this.EventBus.transport.debug) console.log(new Date().toLocaleTimeString(),
-                this.#name, 'ws disconnected', session.ip, uid);
-        });
+        connection.socket.on('close', () => this.removeConnection(uid));
         return this;
     }
 }
 
 const Redis = require('ioredis');
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class Transport {
-
+    #state = ["wait", "reconnecting", "connecting", "connect", "ready", "close", "end"];
     #name = EventBus.name + ' ' + Transport.name + ' ' + Process.process_id;
     #wto = 30000;
     #wtd = 100;
-    #publisher
-    #subscriber
-    #tryCount = 0;
+    #publisher = null;
+    #subscriber = null;
+    #duplex = null;
 
     constructor() {
+        this.#duplex = [this.#publisher, this.#subscriber];
     }
 
     /**
@@ -280,39 +262,37 @@ class Transport {
      * @return {Transport}
      */
     initialize(RedisOptions) {
-        if (!this.#subscriber) {
+        if (this.#duplex.every(it => it === null)) {
             this.#publisher = Redis.createClient(RedisOptions);
             this.#subscriber = Redis.createClient(RedisOptions);
-            this.debug = RedisOptions.debug;
             this.originatorId = Process.id;
-            console.log(this.#name, 'initialized')
-            this.#connectionStatus();
+            this.#duplex = [this.#publisher, this.#subscriber];
+            this.#registerReadyState();
         }
         return this;
     }
 
-    async waitingConnection() {
-        while (this.#publisher.status !== 'ready') {
-            await Number(this.#wto / this.#wtd).sleep(); // three times per second
-            if (++this.#tryCount > this.#wtd) return false;
-        }
-        return true
+    /**
+     * Waiting for ready state
+     * -- three times per second
+     * @return {Promise<boolean>}
+     */
+    waitingConnection = async () => {
+        while (this.#duplex.some(it => it.status !== 'ready')) await sleep(this.#wto / this.#wtd);
     }
 
     /**
      * @param {string} channel
      * @param {function(channel, message)} callback
+     * @description msg - {channel, originatorId, data: message,}
      */
     on(channel, callback) {
         if (!this.#subscriber) throw new Error(this.#name + ' subscriber not initialized yet');
         this.#subscriber.on('message', async (ch, msg) => {
             try {
                 if (channel === ch) {
-                    msg = msg.constructor === ''.constructor ? JSON.parse(msg) : msg;
-                    if (msg.originatorId !== this.originatorId) {
-                        callback(ch, msg.data);
-                        if (this.debug) console.log(this.#name, 'receive message:', ch, msg);
-                    }
+                    msg = parse(msg);
+                    if (msg.originatorId !== this.originatorId) callback(ch, msg.data);
                 }
             } catch (e) {
                 console.error(e)
@@ -339,22 +319,31 @@ class Transport {
         if ((message || {}).constructor !== {}.constructor) {
             throw new Error('We expected a variable(message) as an object - got - ' + (typeof (message)))
         }
-        while (this.#publisher.status !== 'ready') {
-            await sleep(this.#wto / this.#wtd); // three times per second
-            if (++this.#tryCount > this.#wtd) return;
-        }
-        this.#tryCount = 0;
+        await this.waitingConnection()
         message = JSON.stringify({channel, originatorId: this.originatorId, data: message,});
         this.#publisher.publish(channel, message);
-        if (this.debug) console.log(this.#name, 'publish:', channel, message);
     }
 
-    #connectionStatus = () => {
-        if (!this.debug) return;
-        for (let v of ["wait", "reconnecting", "connecting", "connect", "ready", "close", "end"]) {
-            this.#subscriber.on(v, () => console.log(this.#name, 'subscriber status:', v))
-            this.#publisher.on(v, () => console.log(this.#name, 'publisher status:', v))
+    #registerReadyState = () => {
+        for (let v of this.#state) {
+            this.#subscriber.on(v, () => this.#onStateChange('subscriber', v))
+            this.#publisher.on(v, () => this.#onStateChange('publisher', v))
         }
+    }
+    /**
+     * @param {string} name
+     * @param {string} state
+     */
+    #onStateChange = (name, state) => {
+        console.log(this.#name, name, 'status:', state)
+    };
+    /**
+     * Set callback on transport ready state changed
+     * @param {function(name<string>, state<string>)} callback
+     */
+    set onStateChange(callback) {
+        this.#onStateChange = callback;
+        return this;
     }
 }
 

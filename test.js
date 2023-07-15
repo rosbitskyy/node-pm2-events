@@ -17,9 +17,8 @@ const Config = {
     isDev: true
 }
 
-const sleep = function (ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+const sleep =  (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 
 async function doit() {
 
