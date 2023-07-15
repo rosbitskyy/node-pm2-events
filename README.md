@@ -11,7 +11,7 @@ process.on('message', async function (packet){
 ```
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
-**Internal events**
+**Using internal events**
 ```ecmascript 6
 // internal events
 EventBus.on('channelName', (m) => {
@@ -21,8 +21,8 @@ EventBus.send('channelName', {awesome: 'data'}) // work
 EventBus.send('channelName-2', {data: 'awesome'}) // not work - not subscribed
 ```
 
-**An example** of data exchange between different instances 
-(decentralized or not - it doesn't matter)
+**Exchange events between different instances**
+(decentralized or not, pm2 or not - ***it doesn't matter***)
 ```ecmascript 6
 const Config = {
     redis: {
@@ -39,7 +39,7 @@ const Config = {
 }
 
 // with distributed events (example: pm2 instances, single decentralized servers)
-EventBus.transport.initialize({...Config.redis, debug: true});
+EventBus.transport.initialize(Config.redis);
 EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
 })
@@ -49,7 +49,7 @@ EventBus.transport.on('channelName', (message) => {
 EventBus.transport.send('channelName', {some: 'object data'});
 ```
 
-**Use with [Fastify](https://fastify.dev/) and websocket**
+**Use with [Fastify](https://fastify.dev/) websocket**
 
 * Add [fastify web socket plugin](https://github.com/fastify/fastify-websocket)
 ```ecmascript 6
@@ -70,7 +70,8 @@ fastify.after(async () => {
 // ....
 ```
 
-**Add festify routes**
+**Add Festify routes**
+([About Fastify hooks](https://fastify.dev/docs/latest/Reference/Hooks/))
 > local events will be relayed to your websocket connections and to decentralized servers as well
 ```ecmascript 6
 //...
