@@ -30,15 +30,16 @@ async function doit() {
     EventBus.send('target2', {a: 'qwerty'}) // not work - not subscribed
 
     // with distributed events (example: pm2 instances, single decentralized servers)
-    EventBus.transport.initialize({...Config.redis, debug: true});
+    EventBus.transport.initialize({...Config.redis, debug: true}).waitingConnection();
     const channelName = 'AweSome Channel Or Event Name';
     EventBus.transport.on(channelName, (message) => {
         console.log('\tcb :', message)
     })
-    EventBus.transport.on(channelName, (message) => {
+    EventBus.transport.on(channelName+' 2', (message) => {
         console.log('\tcb :', message)
     })
-    EventBus.transport.send(channelName, {action: 'some action'});
+    EventBus.transport.send(channelName, {awesomedata: 'some action'});
+    EventBus.transport.send(channelName + ' 2', {someawe: 'some thing'});
 
     // // with fastify and websockets
     // const fastify = require('fastify')({logger: {level: 'info'}, trustProxy: true,});
