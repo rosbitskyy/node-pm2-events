@@ -30,7 +30,7 @@ async function doit() {
     EventBus.send('target2', {a: 'qwerty'}) // not work - not subscribed
 
     // with distributed events (example: pm2 instances, single decentralized servers)
-    EventBus.transport.initialize({...Config.redis, debug: true});
+    EventBus.transport.initialize({...Config.redis, debug: true}).waitingConnection();
     const channelName = 'AweSome Channel Or Event Name';
     EventBus.transport.on(channelName, (message) => {
         console.log('\tcb :', message)
