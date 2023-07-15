@@ -214,9 +214,7 @@ class WebSocket {
      * @param {object} connection - Duplex
      * @param {object} req - Request
      * @return {WebSocket}
-     * @example
-     *  [About Fastify hooks](https://fastify.dev/docs/latest/Reference/Hooks/)
-     *  [Fastify websocket plugin](https://github.com/fastify/fastify-websocket)
+     * @example [About Fastify hooks](https://fastify.dev/docs/latest/Reference/Hooks/) [Fastify websocket plugin](https://github.com/fastify/fastify-websocket)
      */
     wsHandler = (connection, req) => {
         // after your AUTH handler fastify hook (preHandler: your auth method)
