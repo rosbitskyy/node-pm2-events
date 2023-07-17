@@ -3,15 +3,30 @@
 Data exchange between instances of pm2
 services located on decentralized servers (virtual machines), etc.
 
-The usual mechanism embedded in the process notification 
+The usual mechanism embedded in the process notification
+
 ```ecmascript 6
-process.on('message', async function (packet){
+process.on('message', async function (packet) {
     /* do something with packet.data */
 })
 ```
+
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
+**Install**
+
+```shell
+npm i node-pm2-events
+```
+
+**Initialize**
+
+```ecmascript 6
+const EventBus = require('node-pm2-events');
+```
+
 **Using internal events**
+
 ```ecmascript 6
 // internal events
 EventBus.on('channelName', (m) => {
@@ -21,8 +36,8 @@ EventBus.send('channelName', {awesome: 'data'}) // work
 EventBus.send('channelName-2', {data: 'awesome'}) // not work - not subscribed
 ```
 
-**Exchange events between different instances**
-(decentralized or not, pm2 or not - ***it doesn't matter***)
+*For the examples below - Let's use the configuration example*
+
 ```ecmascript 6
 const Config = {
     redis: {
@@ -32,12 +47,13 @@ const Config = {
         port: 6379
     },
     isDev: true,
-    fastify: {
-        logger: {level: 'info'},
-        trustProxy: true,
-    }
 }
+```
 
+**Exchange events between different instances**
+(decentralized or not, pm2 or not - ***it doesn't matter***)
+
+```ecmascript 6
 // with distributed events (example: pm2 instances, single decentralized servers)
 EventBus.transport.initialize(Config.redis);
 EventBus.transport.on('channelName', (message) => {
@@ -53,7 +69,7 @@ EventBus.transport.send('channelName', {some: 'object data'});
 
 * Add [fastify web socket plugin](https://github.com/fastify/fastify-websocket)
 ```ecmascript 6
-const fastify = require('fastify')(Config.fastify || {
+const fastify = require('fastify')({
     logger: {level: Config.isDev ? 'info' : 'warn'},
     trustProxy: true,
 });
