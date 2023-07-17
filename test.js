@@ -32,10 +32,10 @@ async function doit() {
     // with distributed events (example: pm2 instances, single decentralized servers)
     await EventBus.transport.initialize({...Config.redis, debug: true}).waitingConnection();
     const channelName = 'AweSome Channel Or Event Name';
-    EventBus.transport.on(channelName, (message) => {
+    EventBus.transport.on(channelName, (channelName, message) => {
         console.log('\tcb :', message)
     })
-    EventBus.transport.on(channelName+' 2', (message) => {
+    EventBus.transport.on(channelName + ' 2', (channelName, message) => {
         console.log('\tcb :', message)
     })
     EventBus.transport.send(channelName, {awesomedata: 'some action'});
