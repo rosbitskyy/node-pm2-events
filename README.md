@@ -49,6 +49,7 @@ const Config = {
     isDev: true,
 }
 ```
+Free [Redis server](https://app.redislabs.com/)
 
 **Exchange events between different instances**
 (decentralized or not, pm2 or not - ***it doesn't matter***)
