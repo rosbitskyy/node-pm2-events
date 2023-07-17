@@ -55,7 +55,8 @@ const Config = {
 
 ```ecmascript 6
 // with distributed events (example: pm2 instances, single decentralized servers)
-EventBus.transport.initialize(Config.redis);
+await EventBus.transport.initialize(Config.redis).waitingConnection();
+;
 EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
 })
