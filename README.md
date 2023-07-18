@@ -54,15 +54,16 @@ Free [Redis server](https://app.redislabs.com/)
 **Exchange events between different instances**
 (decentralized or not, pm2 or not - ***it doesn't matter***)
 
+> Execute on one server and on some other(s)
+> - Because the server that sends the data itself does not receive it
 ```ecmascript 6
-// with distributed events (example: pm2 instances, single decentralized servers)
+// execute on one server and on some other(s)
 await EventBus.transport.initialize(Config.redis).waitingConnection();
+// other server(s) - recivers
 EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
 })
-EventBus.transport.on('channelName', (message) => {
-    console.log('\tcb :', message)
-})
+// one server - the one sending the data - senders
 EventBus.transport.send('channelName', {some: 'object data'});
 ```
 
