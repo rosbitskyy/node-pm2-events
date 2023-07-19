@@ -314,9 +314,6 @@ class Transport {
      */
     async send(channel, message) {
         if (!this.#publisher) throw new Error(this.#name + ' publisher not initialized yet');
-        if ((message || {}).constructor !== {}.constructor) {
-            throw new Error('We expected a variable(message) as an object - got - ' + (typeof (message)))
-        }
         await this.waitingConnection()
         message = JSON.stringify({channel, originatorId: this.originatorId, data: message,});
         this.#publisher.publish(channel, message);
