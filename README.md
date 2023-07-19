@@ -120,9 +120,12 @@ EventBus.websocket.messagesHandler = (message, session, connection) => {
     // or do something and send result
     // ...
     // to the current client (from somewhere else)
-    EventBus.websocket.sendTo(session._id, {some: 'data', to: 'client'});
+    EventBus.websocket.sendTo(session.socket_id, {some: 'data', to: 'client'});
     // or
     connection.socket.send({some: 'data', to: 'client'})
+    
+    // send broadcast to all ? (why? but)
+    EventBus.websocket.send({some: 'data', to: 'client'});
 }
 ```
 
