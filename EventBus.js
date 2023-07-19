@@ -30,7 +30,7 @@ const parse = (msg) => msg.constructor === ''.constructor ? JSON.parse(msg) : ms
 
 class Process {
 
-    static #unrealId = new Date().getTime();
+    static #unrealId = Math.random().toString(16).substring(2);
     static #process_id = Number(process.env.pm_id || Process.unrealId);
     static #process_name = (process.env.name || 'UnrealName' + Process.process_id);
     static #name = EventBus.name + ' ' + Process.name + ' ' + Process.process_id;
