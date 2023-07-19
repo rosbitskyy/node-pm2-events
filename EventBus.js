@@ -230,7 +230,7 @@ class WebSocket {
         connection.socket.pong = () => connection.socket.send(JSON.stringify({type: 'pong', data: '🇺🇦'}));
         connection.socket.on('message', (message) => {
             try {
-                message = parse(message);
+                message = parse(message.toString());
                 if (message.type === 'ping') connection.socket.pong();
                 else if (this.#messagesHandler) this.#messagesHandler(message, {...session, socket_id}, connection)
             } catch (e) {
