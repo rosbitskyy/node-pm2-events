@@ -210,6 +210,10 @@ class WebSocket {
         return this;
     }
 
+    get getRandomUID() {
+        return Math.random().toString(16).substring(2);
+    }
+
     /**
      * @param {object} connection - Duplex
      * @param {object} req - Request
@@ -218,21 +222,21 @@ class WebSocket {
      */
     wsHandler = (connection, req) => {
         // after your AUTH handler fastify hook (preHandler: your auth method)
-        const session = (req.userdata || {_id: Math.random().toString(16).substring(2)});
-        const uid = session._id.toString();
-        this.removeConnection(uid);
-        this.addConnection(uid, connection);
+        const session = (req.userdata || {_id: this.getRandomUID});
+        const socket_id = session._id.toString() + this.getRandomUID;
+        this.removeConnection(socket_id);
+        this.addConnection(socket_id, connection);
         connection.setEncoding('utf8')
         connection.socket.pong = () => connection.socket.send(JSON.stringify({type: 'pong', data: '🇺🇦'}));
         connection.socket.on('message', (message) => {
             try {
                 message = parse(message);
                 if (message.type === 'ping') connection.socket.pong();
-                else if (this.#messagesHandler) this.#messagesHandler(message, session, connection)
+                else if (this.#messagesHandler) this.#messagesHandler(message, {...session, socket_id}, connection)
             } catch (e) {
             }
         });
-        connection.socket.on('close', () => this.removeConnection(uid));
+        connection.socket.on('close', () => this.removeConnection(socket_id));
         return this;
     }
 }
