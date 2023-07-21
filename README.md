@@ -82,7 +82,11 @@ fastify.register(require('@fastify/websocket'), {
     }
 });
 fastify.after(async () => {
-    await EventBus.transport.initialize({...Config.redis, debug: Config.isDev}).waitingConnection();
+    await EventBus.transport
+        .initialize(Config.redis)
+        .filterByProcessName(true)
+        .addIgnoredIPAddress('123.45.67.89')
+        .waitingConnection();
     router.register(fastify); // register your routes - [https://fastify.dev/docs/latest/Reference/Routes]
 });
 // ....

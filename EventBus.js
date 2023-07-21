@@ -284,7 +284,7 @@ class Transport {
         while (this.#duplex.some(it => it.status !== 'ready')) await sleep(this.#wto / this.#wtd);
     }
 
-    #filterByProcessName = false;
+    #filterByProcessName = true;
     #excludeAddress = new Set();
 
     get processInfo() {
