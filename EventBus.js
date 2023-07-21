@@ -37,19 +37,19 @@ class Process {
     static #name = EventBus.name + ' ' + Process.name + ' ' + Process.process_id;
 
     static get masterProcessId() {
-        return Process.#masterProcessId;
+        return Number(Process.#masterProcessId);
     }
 
     static get unrealId() {
-        return Process.#unrealId;
+        return Number(Process.#unrealId);
     }
 
     static get process_id() {
-        return Process.#process_id;
+        return Number(Process.#process_id);
     }
 
     static get process_name() {
-        return Process.#process_name;
+        return Number(Process.#process_name);
     }
 
     /**
@@ -78,7 +78,7 @@ class Process {
             if (rows === '') rows = '[-1]';
             let ids = parse(`${rows}`);
             ids = Array.from(new Set(ids)).reverse().filter(it => it * 1 >= 0);
-            return ids;
+            return ids.map(it => Number(it));
         } catch (e) {
             console.error(e)
         }
