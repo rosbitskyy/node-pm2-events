@@ -23,6 +23,7 @@ const sleep =  (ms) => new Promise(resolve => setTimeout(resolve, ms));
 async function doit() {
 
     console.log(EventBus.transport.toString())
+    return
 
     // internal events
     EventBus.on('target', (m) => {

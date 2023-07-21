@@ -31,9 +31,9 @@ const getRandomUID = () => Math.random().toString(16).substring(2);
 
 class Process {
 
-    static #unrealId = getRandomUID();
+    static #unrealId = Number(`0x${getRandomUID()}`);
     static #process_id = (process.env.pm_id || Process.unrealId);
-    static #process_name = (process.env.name || (getRandomUID() + getRandomUID()));
+    static #process_name = (process.env.name || getRandomUID());
     static #name = EventBus.name + ' ' + Process.name + ' ' + Process.process_id;
 
     static get masterProcessId() {
@@ -56,8 +56,8 @@ class Process {
      * @return {string}
      */
     static get id() {
-        return ([Process.interface.mac, Process.interface.address, Process.process_name, Process.process_id,
-            Date.now()].toString());
+        return ([Process.interface.mac, Process.interface.address, Process.process_name,
+            Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
     }
 
     /**
@@ -89,6 +89,15 @@ class Process {
      * @type {number}
      */
     static #masterProcessId = Math.min(...Process.getInstansesIds());
+
+    /**
+     * is PM2 master instance (for current pm2 VM, not decentralized)
+     * in case of local launch without PM2 - always true
+     * @return {boolean}
+     */
+    static get isPm2Master() {
+        return Process.masterProcessId === Process.process_id || Process.process_id === Process.unrealId;
+    }
 
     /**
      * @return {{}|NetworkInterfaceInfo}
@@ -253,6 +262,7 @@ class Transport {
     #publisher = null;
     #subscriber = null;
     #duplex = null;
+    #id = Process.id;
 
     constructor() {
         this.#duplex = [this.#publisher, this.#subscriber];
@@ -268,7 +278,6 @@ class Transport {
         if (this.#duplex.every(it => it === null)) {
             this.#publisher = Redis.createClient(RedisOptions);
             this.#subscriber = Redis.createClient(RedisOptions);
-            this.originatorId = Process.id;
             this.#duplex = [this.#publisher, this.#subscriber];
             this.#registerReadyState();
         }
@@ -286,33 +295,15 @@ class Transport {
 
     #filterByProcessName = true;
     #excludeAddress = new Set();
+    #requestId = 1;
 
     get processInfo() {
-        return {process_name: Process.process_name, process_id: Process.process_id, ...Process.interface}
-    }
-
-    /**
-     * @param {string} channel
-     * @param {function(channel, message)} callback
-     * @description msg - {channel, originatorId, data: message,}
-     */
-    on(channel, callback) {
-        if (!this.#subscriber) throw new Error(this.#name + ' subscriber not initialized yet');
-        this.#subscriber.on('message', async (ch, msg) => {
-            try {
-                // filter by exclusion method
-                if (channel !== ch) return;
-                msg = parse(msg);
-                if (msg.originatorId === this.originatorId ||
-                    this.#filterByProcessName && msg.sender.process_name !== Process.process_name ||
-                    this.#excludeAddress.has(msg.sender.address)
-                ) return;
-                callback(ch, msg.data);
-            } catch (e) {
-                console.error(e)
-            }
-        });
-        this.#subscriber.subscribe(channel);
+        return {
+            id: this.#id,
+            process_name: Process.process_name,
+            process_id: Process.process_id,
+            ...Process.interface
+        }
     }
 
     /**
@@ -365,6 +356,30 @@ class Transport {
 
     /**
      * @param {string} channel
+     * @param {function(channel, message:{channel, id, data, sender})} callback
+     * @description msg - {channel, id, data: message,}
+     */
+    on(channel, callback) {
+        if (!this.#subscriber) throw new Error(this.#name + ' subscriber not initialized yet');
+        this.#subscriber.on('message', async (ch, msg) => {
+            try {
+                // filter by exclusion method
+                if (channel !== ch) return;
+                msg = parse(msg);
+                if (msg.sender.id === this.#id ||
+                    this.#filterByProcessName && msg.sender.process_name !== Process.process_name ||
+                    this.#excludeAddress.has(msg.sender.address)
+                ) return;
+                callback(ch, msg.data);
+            } catch (e) {
+                console.error(e)
+            }
+        });
+        this.#subscriber.subscribe(channel);
+    }
+
+    /**
+     * @param {string} channel
      * @param {object} message
      * @return {Promise<void>}
      */
@@ -373,7 +388,7 @@ class Transport {
         await this.waitingConnection()
         message = JSON.stringify({
             channel,
-            originatorId: this.originatorId,
+            id: Number(++this.#requestId).toString(16),
             data: message,
             sender: this.processInfo
         });
@@ -384,7 +399,8 @@ class Transport {
         return {
             ...this.processInfo,
             excludeAddress: this.#excludeAddress,
-            filterByProcessName: this.#filterByProcessName
+            filterByProcessName: this.#filterByProcessName,
+            isPM2Master: Process.isPm2Master,
         }
     }
 
