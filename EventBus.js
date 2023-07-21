@@ -27,12 +27,13 @@ class EventBus extends EventEmitter {
 
 const {execSync} = require("child_process");
 const parse = (msg) => msg.constructor === ''.constructor ? JSON.parse(msg) : msg;
+const getRandomUID = () => Math.random().toString(16).substring(2);
 
 class Process {
 
-    static #unrealId = Math.random().toString(16).substring(2);
-    static #process_id = Number(process.env.pm_id || Process.unrealId);
-    static #process_name = (process.env.name || 'UnrealName' + Process.process_id);
+    static #unrealId = getRandomUID();
+    static #process_id = (process.env.pm_id || Process.unrealId);
+    static #process_name = (process.env.name || (getRandomUID() + getRandomUID()));
     static #name = EventBus.name + ' ' + Process.name + ' ' + Process.process_id;
 
     static get masterProcessId() {
@@ -148,14 +149,8 @@ class WebSocket {
         return this;
     }
 
-    /**
-     * From internal to self sockets and emit to other servers, and his sockets
-     * From external to self sockets
-     * @param {string} channel
-     */
-    registerDuplexEvents(channel) {
-        this.on(channel);
-        this.EventBus.transport.on(channel, async (channel, message) => this.EventBus.websocket.send(message));
+    get getRandomUID() {
+        return getRandomUID();
     }
 
     /**
@@ -210,8 +205,14 @@ class WebSocket {
         return this;
     }
 
-    get getRandomUID() {
-        return Math.random().toString(16).substring(2);
+    /**
+     * From internal to self sockets and emit to other servers, and his sockets
+     * From external to self sockets
+     * @param {string} channel
+     */
+    registerDuplexEvents(channel) {
+        this.on(channel);
+        this.EventBus.transport.on(channel, async (channel, message) => this.send(message));
     }
 
     /**
@@ -283,6 +284,13 @@ class Transport {
         while (this.#duplex.some(it => it.status !== 'ready')) await sleep(this.#wto / this.#wtd);
     }
 
+    #filterByProcessName = false;
+    #excludeAddress = new Set();
+
+    get processInfo() {
+        return {process_name: Process.process_name, process_id: Process.process_id, ...Process.interface}
+    }
+
     /**
      * @param {string} channel
      * @param {function(channel, message)} callback
@@ -292,10 +300,14 @@ class Transport {
         if (!this.#subscriber) throw new Error(this.#name + ' subscriber not initialized yet');
         this.#subscriber.on('message', async (ch, msg) => {
             try {
-                if (channel === ch) {
-                    msg = parse(msg);
-                    if (msg.originatorId !== this.originatorId) callback(ch, msg.data);
-                }
+                // filter by exclusion method
+                if (channel !== ch) return;
+                msg = parse(msg);
+                if (msg.originatorId === this.originatorId ||
+                    this.#filterByProcessName && msg.sender.process_name !== Process.process_name ||
+                    this.#excludeAddress.has(msg.sender.address)
+                ) return;
+                callback(ch, msg.data);
             } catch (e) {
                 console.error(e)
             }
@@ -304,11 +316,51 @@ class Transport {
     }
 
     /**
+     * In the case of using the same Redis server for different projects
+     * (different databases, but there will be common alerts),
+     * it is better to additionally use filtering by the name of the desired process.
+     * @param {boolean} v
+     * @return {Transport}
+     * @example
+     * PM2 processes list
+     * ┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+     * │ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+     * ├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+     * ...
+     * │ 11 │ ym-api             │ cluster  │ 0    │ online    │ 0%       │ 62.4mb   │
+     * │ 12 │ ym-api             │ cluster  │ 0    │ online    │ 0%       │ 73.0mb   │
+     * ...
+     * │ 13 │ my-api             │ cluster  │ 0    │ online    │ 0%       │ 91.3mb   │
+     * │ 14 │ my-api             │ cluster  │ 0    │ online    │ 0%       │ 99.2mb   │
+     * │ 15 │ my-api             │ cluster  │ 0    │ online    │ 0%       │ 92.1mb   │
+     * │ 16 │ my-api             │ cluster  │ 0    │ online    │ 0%       │ 92.1mb   │
+     * ...
+     */
+    filterByProcessName(v) {
+        this.#filterByProcessName = Boolean(!!v)
+        return this;
+    }
+
+    /**
+     * or filter by IP addresses.
+     * ^(?!0)(?!.*\.$)((1?\d?\d|25[0-5]|2[0-4]\d)(\.|$)){4}$
+     * @param {string} ip
+     * @return {Transport}
+     */
+    addIgnoredIPAddress(ip) {
+        if (!require('net').isIPv4(ip)) return this;
+        this.#excludeAddress.add(ip);
+        return this;
+    }
+
+    /**
      * @param {string} channel
+     * @return {Transport}
      */
     off(channel) {
-        if (!this.#subscriber) return
+        if (!this.#subscriber) return this;
         this.#subscriber.unsubscribe(channel)
+        return this;
     }
 
     /**
@@ -319,8 +371,21 @@ class Transport {
     async send(channel, message) {
         if (!this.#publisher) throw new Error(this.#name + ' publisher not initialized yet');
         await this.waitingConnection()
-        message = JSON.stringify({channel, originatorId: this.originatorId, data: message,});
+        message = JSON.stringify({
+            channel,
+            originatorId: this.originatorId,
+            data: message,
+            sender: this.processInfo
+        });
         this.#publisher.publish(channel, message);
+    }
+
+    toString() {
+        return {
+            ...this.processInfo,
+            excludeAddress: this.#excludeAddress,
+            filterByProcessName: this.#filterByProcessName
+        }
     }
 
     #registerReadyState = () => {

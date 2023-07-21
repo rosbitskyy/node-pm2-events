@@ -32,7 +32,10 @@ async function doit() {
     // with distributed events (example: pm2 instances, single decentralized servers)
     // execute on one server and on some other(s)
     // - Because the server that sends the data itself does not receive it
-    await EventBus.transport.initialize({...Config.redis, debug: true}).waitingConnection();
+    await EventBus.transport.initialize({...Config.redis, debug: true})
+        .filterByProcessName(true)
+        .waitingConnection();
+
     const channelName = 'AweSome Channel Or Event Name';
     // other server(s) - recivers
     EventBus.transport.on(channelName, (channelName, message) => {
@@ -42,6 +45,7 @@ async function doit() {
     EventBus.transport.on(channelName + ' 2', (channelName, message) => {
         console.log('\tcb :', message)
     })
+
     // one server - the one sending the data - senders
     EventBus.transport.send(channelName, {awesomedata: 'some action'});
     // one/other server - the one sending the data - senders
