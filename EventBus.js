@@ -49,7 +49,7 @@ class Process {
     }
 
     static get process_name() {
-        return Number(Process.#process_name);
+        return Process.#process_name;
     }
 
     /**
