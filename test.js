@@ -22,6 +22,8 @@ const sleep =  (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function doit() {
 
+    console.log(EventBus.transport.toString())
+
     // internal events
     EventBus.on('target', (m) => {
         console.log('\tinternal:', m)
