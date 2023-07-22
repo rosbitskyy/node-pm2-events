@@ -52,13 +52,31 @@ class Process {
         return Process.#process_name;
     }
 
+    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
+        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
+
     /**
      * @return {string}
      */
     static get id() {
-        return ([Process.interface.mac, Process.interface.address, Process.process_name,
-            Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
+        return this.#id;
     }
+
+    /**
+     * @return {{}|NetworkInterfaceInfo}
+     */
+    static #_interface = () => {
+        const interfaces = require('os').networkInterfaces();
+        for (let key of Object.keys(interfaces)) {
+            const found = interfaces[key].filter(it => it.family === 'IPv4' && !it.internal)
+            for (let it of found) {
+                if (!it.mac.startsWith('00:00') && !it.address.startsWith('127.')) return it;
+            }
+        }
+        return {};
+    }
+
+    static #interface = Process.#_interface();
 
     /**
      * @return {{}|NetworkInterfaceInfo}
@@ -98,21 +116,6 @@ class Process {
     static get isPm2Master() {
         return Process.masterProcessId === Process.process_id || Process.process_id === Process.unrealId;
     }
-
-    /**
-     * @return {{}|NetworkInterfaceInfo}
-     */
-    static #_interface = () => {
-        const interfaces = require('os').networkInterfaces();
-        for (let key of Object.keys(interfaces)) {
-            const found = interfaces[key].filter(it => it.family === 'IPv4' && !it.internal)
-            for (let it of found) {
-                if (!it.mac.startsWith('00:00') && !it.address.startsWith('127.')) return it;
-            }
-        }
-        return {};
-    }
-    static #interface = Process.#_interface();
 
 }
 
@@ -262,6 +265,7 @@ class Transport {
         type: {iamhere: 'im', bye: 'bye',},
         publisher: 'publisher',
         subscriber: 'subscriber',
+        message: 'message',
     }
     #state = ["wait", "reconnecting", "connecting", "connect", this.constant.READY, "close", "end"];
     #name = EventBus.name + ' ' + Transport.name + ' ' + Process.process_id;
@@ -271,6 +275,17 @@ class Transport {
     #subscriber = null;
     #duplex = null;
     #id = Process.id;
+
+    #isMaster = false;
+
+    get isMaster() {
+        return this.#isMaster
+    }
+
+    set isMaster(id) {
+        this.#isMaster = this.#id === id;
+        // console.log('im isMaster', this.#isMaster)
+    }
 
     constructor() {
         this.#duplex = [this.#publisher, this.#subscriber];
@@ -297,18 +312,39 @@ class Transport {
     }
 
     /**
-     * Register handshakes
+     * Register handshakes and change decentrilised master server
+     * There are no replicas - no slaves - only the MASTER and that's it.
+     * He has to do something alone, in a decentralized environment of many servers and their variety of services
+     * - including PM2 or not - it doesn't matter.
      * @return {Promise<Transport>}
+     * @example
+     *      await EventBus.transport.initialize({...Config.redis})
+     *         .filterByProcessName(false) // ?? or not :)
+     *         .handshakes()
      */
     async handshakes() {
-        const _send = (v) => this.isReady && this.send(this.constant.HANDSHAKE, {type: v, id: Process.id});
+        const _send = (v) => this.isReady && this.send(this.constant.HANDSHAKE, {type: v});
         process.on(this.constant.SIGINT, async () => {
-            console.log(new Date().toLocaleTimeString(), this.constant.SIGINT, Transport.name, Process.process_id);
+            console.log(new Date().toLocaleTimeString(), this.constant.SIGINT, Transport.name, this.#id);
+            this.off(this.constant.HANDSHAKE);
             _send(this.constant.type.bye)
             await sleep(1000)
             process.exit(0)
         });
         await this.waitingConnection();
+
+        this.#subscriber.on(this.constant.message, async (channel, message) => {
+            try {
+                if (channel !== this.constant.HANDSHAKE) return;
+                message = parse(message);
+                if (message.data.type === this.constant.type.iamhere) this.isMaster = message.sender.id;
+                if (message.data.type === this.constant.type.bye && message.sender.id !== this.#id) _send(this.constant.type.iamhere);
+            } catch (e) {
+                console.error(e)
+            }
+        })
+        this.#subscriber.subscribe(this.constant.HANDSHAKE);
+
         _send(this.constant.type.iamhere);
         return this;
     }
@@ -390,7 +426,7 @@ class Transport {
      */
     on(channel, callback) {
         if (!this.#subscriber) throw new Error(this.#name + ' subscriber not initialized yet');
-        this.#subscriber.on('message', async (ch, msg) => {
+        this.#subscriber.on(this.constant.message, async (ch, msg) => {
             try {
                 // filter by exclusion method
                 if (channel !== ch) return;
@@ -430,6 +466,7 @@ class Transport {
             excludeAddress: this.#excludeAddress,
             filterByProcessName: this.#filterByProcessName,
             isPM2Master: Process.isPm2Master,
+            isMaster: this.#isMaster,
         }
     }
 
@@ -444,7 +481,7 @@ class Transport {
      * @param {string} state
      */
     #onStateChange = (name, state) => {
-        console.log(this.#name, name, 'status:', state)
+        // console.log(this.#name, name, 'status:', state)
     };
     /**
      * Set callback on transport ready state changed
