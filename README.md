@@ -1,4 +1,4 @@
-🇺🇦***Decentralized instances events***
+## 🇺🇦Decentralized instances events
 
 [![npm version](https://img.shields.io/npm/v/node-pm2-events.svg)](https://www.npmjs.com/package/node-pm2-events)
 [![Downloads/month](https://img.shields.io/npm/dm/node-pm2-events.svg)](http://www.npmtrends.com/node-pm2-events)
@@ -13,22 +13,21 @@ process.on('message', async function (packet) {
     /* do something with packet.data */
 })
 ```
-
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
-**Install**
+### Install
 
 ```shell
 npm i node-pm2-events
 ```
 
-**Initialize**
+### Initialize
 
 ```ecmascript 6
 const EventBus = require('node-pm2-events');
 ```
 
-**Using internal events**
+### Using internal events
 
 ```ecmascript 6
 // internal events
@@ -54,7 +53,7 @@ const Config = {
 ```
 Free [Redis server](https://app.redislabs.com/)
 
-**Exchange events between different instances**
+### Exchange events between different instances
 (decentralized or not, pm2 or not - ***it doesn't matter***)
 
 > Execute on one server and on some other(s)
@@ -70,7 +69,7 @@ EventBus.transport.on('channelName', (message) => {
 EventBus.transport.send('channelName', {some: 'object data'});
 ```
 
-**Use with [Fastify](https://fastify.dev/) websocket**
+### Use with [Fastify](https://fastify.dev/) websocket
 
 * Add [fastify web socket plugin](https://github.com/fastify/fastify-websocket)
 ```ecmascript 6
@@ -95,7 +94,7 @@ fastify.after(async () => {
 // ....
 ```
 
-**Add Festify routes**
+### Add Festify routes
 ([About Fastify hooks](https://fastify.dev/docs/latest/Reference/Hooks/))
 > local events will be relayed to your websocket connections and to decentralized servers as well
 ```ecmascript 6
@@ -115,7 +114,7 @@ routes.push({
 });
 ```
 
-**Handle messages from clients sockets**
+### Handle messages from clients sockets
 ```ecmascript 6
 // override: handle messages from clients sockets
 EventBus.websocket.messagesHandler = (message, session, connection) => {
