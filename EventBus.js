@@ -52,16 +52,6 @@ class Process {
         return Process.#process_name;
     }
 
-    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
-        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
-
-    /**
-     * @return {string}
-     */
-    static get id() {
-        return this.#id;
-    }
-
     /**
      * @return {{}|NetworkInterfaceInfo}
      */
@@ -75,8 +65,17 @@ class Process {
         }
         return {};
     }
-
     static #interface = Process.#_interface();
+
+    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
+        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
+
+    /**
+     * @return {string}
+     */
+    static get id() {
+        return this.#id;
+    }
 
     /**
      * @return {{}|NetworkInterfaceInfo}
@@ -284,7 +283,7 @@ class Transport {
 
     set isMaster(id) {
         this.#isMaster = this.#id === id;
-        // console.log('im isMaster', this.#isMaster)
+        console.log(this.#name, 'im isMaster', this.#isMaster)
     }
 
     constructor() {
