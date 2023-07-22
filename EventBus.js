@@ -275,8 +275,11 @@ class Transport {
     #duplex = null;
     #id = Process.id;
 
-    #isMaster = false;
+    #isMaster = true;
 
+    get isReady() {
+        return this.#publisher && this.#publisher.status === this.constant.READY;
+    }
     get isMaster() {
         return this.#isMaster
     }
@@ -306,12 +309,8 @@ class Transport {
         return this;
     }
 
-    get isReady() {
-        return this.#publisher && this.#publisher.status === this.constant.READY;
-    }
-
     /**
-     * Register handshakes and change decentrilised master server
+     * Register handshakes and change decentralised master server.
      * There are no replicas - no slaves - only the MASTER and that's it.
      * He has to do something alone, in a decentralized environment of many servers and their variety of services
      * - including PM2 or not - it doesn't matter.

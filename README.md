@@ -133,11 +133,26 @@ EventBus.websocket.messagesHandler = (message, session, connection) => {
     EventBus.websocket.sendTo(session.socket_id, {some: 'data', to: 'client'});
     // or
     connection.socket.send({some: 'data', to: 'client'})
-    
+
     // send broadcast to all ? (why? but)
     EventBus.websocket.send({some: 'data', to: 'client'});
 }
 ```
 
+### Register handshakes and change decentralised master server
+
+There are no replicas - no slaves - only the MASTER and that's it.
+He has to do something alone, in a decentralized environment of many servers and their variety of services
+
+- including PM2 or not - it doesn't matter.
+
+```ecmascript 6
+await EventBus.transport.initialize(Config.redis)
+    .filterByProcessName(false)
+    .handshakes()
+
+console.log('isPm2Master', EventBus.process.isPm2Master);
+console.log('isMaster', EventBus.transport.isMaster);
+```
 
 [Redis](https://redis.io/docs/getting-started/) is used for exchange: [ioredis](https://www.npmjs.com/package/ioredis)
