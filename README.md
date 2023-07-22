@@ -52,13 +52,18 @@ const Config = {
     isDev: true,
 }
 ```
+
 Try using a free [Redis server](https://app.redislabs.com/)
 
 ### Exchange events between different instances
+
 (decentralized or not, pm2 or not - ***it doesn't matter***)
 
 > Execute on one server and on some other(s)
 > - Because the server that sends the data itself does not receive it
+
+[![initialize](https://img.shields.io/badge/eventbus-transport_initialize-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+
 ```ecmascript 6
 // execute on one server and on some other(s)
 await EventBus.transport
@@ -119,6 +124,8 @@ routes.push({
 ```
 
 ### Handle messages from clients sockets
+
+[![filterByProcessName](https://img.shields.io/badge/eventbus-websocket_messagesHandler-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 ```ecmascript 6
 // override: handle messages from clients sockets
 EventBus.websocket.messagesHandler = (message, session, connection) => {
@@ -146,7 +153,9 @@ He has to do something alone, in a decentralized environment of many servers and
 
 - including PM2 or not - it doesn't matter.
 
-#### [Example 1](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+#### Example 1
+
+[![handshakes](https://img.shields.io/badge/eventbus-transport_handshakes-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
 ```ecmascript 6
 await EventBus.transport.initialize(Config.redis)
@@ -154,7 +163,7 @@ await EventBus.transport.initialize(Config.redis)
     .handshakes()
 ```
 
-_Somewhere, in the place you need_
+[![onMasterChange](https://img.shields.io/badge/eventbus-transport_onMasterChange-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
 ```ecmascript 6
 // Somewhere, in the place you need
@@ -190,7 +199,9 @@ await EventBus.transport.initialize(Config.redis)
     .handshakes()
 ```
 
-### .filterByProcessName(boolean)
+#### filterByProcessName
+
+[![filterByProcessName](https://img.shields.io/badge/eventbus-transport_filterByProcessName-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
 In the case of using the same Redis server for different projects
 (different databases, but there will be common alerts),
