@@ -18,7 +18,11 @@
     "socket",
     "fastify"
   ],
-  "author": "rosbitskyy ruslan",
+  "author": {
+    "name": "\uD83C\uDDFA\uD83C\uDDE6Rosbitskyy Ruslan",
+    "email": "rosbitskyy@gmail.com",
+    "url": "https://github.com/rosbitskyy/"
+  },
   "license": "MIT",
   "dependencies": {
     "ioredis": "^5.3.2"
