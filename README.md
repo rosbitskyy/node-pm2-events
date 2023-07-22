@@ -153,6 +153,13 @@ await EventBus.transport.initialize(Config.redis)
 
 console.log('isPm2Master', EventBus.process.isPm2Master);
 console.log('isMaster', EventBus.transport.isMaster);
+
+//...
+if (EventBus.transport.isMaster) {
+    // for example - make a record in the database 
+    // or something else that only one of the servers (services) should do
+}
+
 ```
 
 [Redis](https://redis.io/docs/getting-started/) is used for exchange: [ioredis](https://www.npmjs.com/package/ioredis)
