@@ -255,7 +255,15 @@ const Redis = require('ioredis');
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class Transport {
-    #state = ["wait", "reconnecting", "connecting", "connect", "ready", "close", "end"];
+    constant = {
+        SIGINT: 'SIGINT',
+        HANDSHAKE: 'handshake',
+        READY: 'ready',
+        type: {iamhere: 'im', bye: 'bye',},
+        publisher: 'publisher',
+        subscriber: 'subscriber',
+    }
+    #state = ["wait", "reconnecting", "connecting", "connect", this.constant.READY, "close", "end"];
     #name = EventBus.name + ' ' + Transport.name + ' ' + Process.process_id;
     #wto = 30000;
     #wtd = 100;
@@ -284,13 +292,34 @@ class Transport {
         return this;
     }
 
+    get isReady() {
+        return this.#publisher && this.#publisher.status === this.constant.READY;
+    }
+
+    /**
+     * Register handshakes
+     * @return {Promise<Transport>}
+     */
+    async handshakes() {
+        const _send = (v) => this.isReady && this.send(this.constant.HANDSHAKE, {type: v, id: Process.id});
+        process.on(this.constant.SIGINT, async () => {
+            console.log(new Date().toLocaleTimeString(), this.constant.SIGINT, Transport.name, Process.process_id);
+            _send(this.constant.type.bye)
+            await sleep(1000)
+            process.exit(0)
+        });
+        await this.waitingConnection();
+        _send(this.constant.type.iamhere);
+        return this;
+    }
+
     /**
      * Waiting for ready state
      * -- three times per second
      * @return {Promise<boolean>}
      */
     waitingConnection = async () => {
-        while (this.#duplex.some(it => it.status !== 'ready')) await sleep(this.#wto / this.#wtd);
+        while (this.#duplex.some(it => it.status !== this.constant.READY)) await sleep(this.#wto / this.#wtd);
     }
 
     #filterByProcessName = true;
@@ -406,8 +435,8 @@ class Transport {
 
     #registerReadyState = () => {
         for (let v of this.#state) {
-            this.#subscriber.on(v, () => this.#onStateChange('subscriber', v))
-            this.#publisher.on(v, () => this.#onStateChange('publisher', v))
+            this.#subscriber.on(v, () => this.#onStateChange && this.#onStateChange(this.constant.subscriber, v))
+            this.#publisher.on(v, () => this.#onStateChange && this.#onStateChange(this.constant.publisher, v))
         }
     }
     /**
