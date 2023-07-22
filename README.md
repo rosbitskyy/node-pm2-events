@@ -44,14 +44,16 @@ EventBus.send('channelName-2', {data: 'awesome'}) // not work - not subscribed
 const Config = {
     redis: {
         host: 'localhost',
-        password: "your password",
+        username: "username",
+        password: "password",
         keepAlive: true,
         port: 6379
     },
     isDev: true,
 }
 ```
-Free [Redis server](https://app.redislabs.com/)
+
+Try using a free [Redis server](https://app.redislabs.com/)
 
 ### Exchange events between different instances
 (decentralized or not, pm2 or not - ***it doesn't matter***)
