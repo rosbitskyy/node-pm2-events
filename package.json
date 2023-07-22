@@ -1,6 +1,6 @@
 {
   "name": "node-pm2-events",
-  "version": "1.2.22",
+  "version": "1.2.23",
   "description": "Local and decentralized instances eventbus with web socket addon",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
     "fastify"
   ],
   "author": {
-    "name": "\uD83C\uDDFA\uD83C\uDDE6Rosbitskyy Ruslan",
+    "name": "🇺🇦Rosbitskyy Ruslan",
     "email": "rosbitskyy@gmail.com",
     "url": "https://github.com/rosbitskyy/"
   },
