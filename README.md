@@ -225,5 +225,6 @@ If your decentralized processes have different names, but are a single
 entity of the microservices ecosystem, turn off filtering by process name:
 > EventBus.transport.filterByProcessName(false)
 
+### Dependencies
 
-[Redis](https://redis.io/docs/getting-started/) is used for exchange: [ioredis](https://www.npmjs.com/package/ioredis)
+[![Redis](https://img.shields.io/badge/Redis-ioredis-blue?logo=npm)](https://www.npmjs.com/package/ioredis)
