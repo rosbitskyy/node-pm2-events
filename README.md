@@ -139,27 +139,80 @@ EventBus.websocket.messagesHandler = (message, session, connection) => {
 }
 ```
 
-### Register handshakes and change decentralised master server
+### Register handshakes and change decentralised master/main server
 
-There are no replicas - no slaves - only the MASTER and that's it.
+There are no replicas - no slaves - only the MASTER(Main) and that's it.
 He has to do something alone, in a decentralized environment of many servers and their variety of services
 
 - including PM2 or not - it doesn't matter.
+
+#### [Example 1](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
 ```ecmascript 6
 await EventBus.transport.initialize(Config.redis)
     .filterByProcessName(false)
     .handshakes()
-
-console.log('isPm2Master', EventBus.process.isPm2Master);
-console.log('isMaster', EventBus.transport.isMaster);
-
-//...
-if (EventBus.transport.isMaster) {
-    // for example - make a record in the database 
-    // or something else that only one of the servers (services) should do
-}
-
 ```
+
+_Somewhere, in the place you need_
+
+```ecmascript 6
+// Somewhere, in the place you need
+EventBus.transport.onMasterChange((isMain) => {
+    console.log('isMain', isMain)
+    if (isMain) {
+        // Some unique event to be processed by the main server
+        EventBus.transport.on('Contract', (ch, msg) => {
+            /* Do something with the contract */
+        })
+    } else {
+        EventBus.transport.off('Contract');
+    }
+})
+```
+
+#### Example 2
+
+```ecmascript 6
+await EventBus.transport.initialize(Config.redis)
+    .filterByProcessName(false)
+    .onMasterChange((isMain) => {
+        console.log('isMain', isMain)
+        if (isMain) {
+            // Some unique event to be processed by the main server
+            EventBus.transport.on('Contract', (ch, msg) => {
+                /* Do something with the contract */
+            })
+        } else {
+            EventBus.transport.off('Contract');
+        }
+    })
+    .handshakes()
+```
+
+### .filterByProcessName(boolean)
+
+In the case of using the same Redis server for different projects
+(different databases, but there will be common alerts),
+it is better to additionally use filtering by the name of the
+desired process.
+> EventBus.transport.filterByProcessName(true)
+
+#### PM2 processes list
+
+| id  | **name**    | mode    | ↺ | status | cpu | memory |
+|-----|-------------|---------|---|--------|-----|--------|
+| ... |
+| 11  | **ym-api**  | cluster | 0 | online | 0%  | 62.4mb |
+| 12  | ym-api      | cluster | 0 | online | 0%  | 73.0mb |
+| 13  | **my-api**  | cluster | 0 | online | 0%  | 91.3mb |
+| 14  | my-api      | cluster | 0 | online | 0%  | 99.2mb |
+| ... |
+| 94  | **api-bot** | cluster | 2 | online | 0%  | 47.7mb |
+
+If your decentralized processes have different names, but are a single
+entity of the microservices ecosystem, turn off filtering by process name:
+> EventBus.transport.filterByProcessName(false)
+
 
 [Redis](https://redis.io/docs/getting-started/) is used for exchange: [ioredis](https://www.npmjs.com/package/ioredis)

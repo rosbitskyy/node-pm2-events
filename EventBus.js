@@ -277,16 +277,48 @@ class Transport {
 
     #isMaster = true;
 
+    /**
+     * Transport on ready state?
+     * @return {null|boolean}
+     */
     get isReady() {
         return this.#publisher && this.#publisher.status === this.constant.READY;
     }
+
+    /**
+     * @return {boolean}
+     */
     get isMaster() {
         return this.#isMaster
     }
 
-    set isMaster(id) {
+    /**
+     * Establish that this is the main process
+     * @param {string<Process.id>} id
+     * @return {Transport}
+     */
+    isMaster(id) {
         this.#isMaster = this.#id === id;
-        console.log(this.#name, 'im isMaster', this.#isMaster)
+        if (this.#onMasterChange && typeof this.#onMasterChange === 'function') this.#onMasterChange(this.#isMaster);
+        return this;
+    }
+
+    /**
+     * by default do nothing
+     * @param {boolean} isMaster
+     */
+    #onMasterChange = (isMaster) => {
+        /* Some unique event to be processed by the main server */
+        /* register or unregister awesome event here */
+        /* do awesome here */
+    }
+
+    /**
+     * @param {function(isMaster<boolean>)} callback
+     */
+    onMasterChange(callback) {
+        this.#onMasterChange = callback;
+        return this;
     }
 
     constructor() {
@@ -308,6 +340,17 @@ class Transport {
         }
         return this;
     }
+
+    /**
+     * @param {string<Process.id>} id
+     * @return {boolean}
+     */
+    isSameId = (id) => id === this.#id;
+    /**
+     * @param {string} process_name
+     * @return {boolean}
+     */
+    isSameProcessName = (process_name) => process_name === Process.process_name;
 
     /**
      * Register handshakes and change decentralised master server.
@@ -335,8 +378,8 @@ class Transport {
             try {
                 if (channel !== this.constant.HANDSHAKE) return;
                 message = parse(message);
-                if (message.data.type === this.constant.type.iamhere) this.isMaster = message.sender.id;
-                if (message.data.type === this.constant.type.bye && message.sender.id !== this.#id) _send(this.constant.type.iamhere);
+                if (message.data.type === this.constant.type.iamhere) this.isMaster(message.sender.id);
+                if (message.data.type === this.constant.type.bye && !this.isSameId(message.sender.id)) _send(this.constant.type.iamhere);
             } catch (e) {
                 console.error(e)
             }
@@ -419,21 +462,21 @@ class Transport {
 
     /**
      * @param {string} channel
-     * @param {function(channel, message:{channel, id, data, sender})} callback
+     * @param {function(channel, message<{channel, id, data, sender}>)} callback
      * @description msg - {channel, id, data: message,}
      */
     on(channel, callback) {
         if (!this.#subscriber) throw new Error(this.#name + ' subscriber not initialized yet');
-        this.#subscriber.on(this.constant.message, async (ch, msg) => {
+        this.#subscriber.on(this.constant.message, async (ch, message) => {
             try {
                 // filter by exclusion method
                 if (channel !== ch) return;
-                msg = parse(msg);
-                if (msg.sender.id === this.#id ||
-                    this.#filterByProcessName && msg.sender.process_name !== Process.process_name ||
-                    this.#excludeAddress.has(msg.sender.address)
+                message = parse(message);
+                if (this.isSameId(message.sender.id) ||
+                    this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name) ||
+                    this.#excludeAddress.has(message.sender.address)
                 ) return;
-                callback(ch, msg.data);
+                callback(ch, message.data);
             } catch (e) {
                 console.error(e)
             }
