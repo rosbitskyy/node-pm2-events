@@ -52,7 +52,6 @@ const Config = {
     isDev: true,
 }
 ```
-
 Try using a free [Redis server](https://app.redislabs.com/)
 
 ### Exchange events between different instances
@@ -62,7 +61,10 @@ Try using a free [Redis server](https://app.redislabs.com/)
 > - Because the server that sends the data itself does not receive it
 ```ecmascript 6
 // execute on one server and on some other(s)
-await EventBus.transport.initialize(Config.redis).waitingConnection();
+await EventBus.transport
+    .initialize(Config.redis)
+    .filterByProcessName(false)
+    .waitingConnection();
 // other server(s) - recivers
 EventBus.transport.on('channelName', (message) => {
     console.log('\tcb :', message)
