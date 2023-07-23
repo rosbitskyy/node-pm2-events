@@ -23,13 +23,13 @@ npm i node-pm2-events
 
 ### Initialize
 
-```ecmascript 6
+```javascript
 const EventBus = require('node-pm2-events');
 ```
 
 ### Using internal events
 
-```ecmascript 6
+```javascript
 // internal events
 EventBus.on('channelName', (m) => {
     console.log('\tinternal:', m)
@@ -40,7 +40,7 @@ EventBus.send('channelName-2', {data: 'awesome'}) // not work - not subscribed
 
 *For the examples below - Let's use the configuration example*
 
-```ecmascript 6
+```javascript
 const Config = {
     redis: {
         host: 'localhost',
@@ -64,7 +64,7 @@ Try using a free [Redis server](https://app.redislabs.com/)
 
 [![initialize](https://img.shields.io/badge/eventbus-transport_initialize-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
-```ecmascript 6
+```javascript
 // execute on one server and on some other(s)
 await EventBus.transport
     .initialize(Config.redis)
@@ -81,7 +81,7 @@ EventBus.transport.send('channelName', {some: 'object data'});
 ### Use with [Fastify](https://fastify.dev/) websocket
 
 * Add [fastify web socket plugin](https://github.com/fastify/fastify-websocket)
-```ecmascript 6
+```javascript
 const fastify = require('fastify')({
     logger: {level: Config.isDev ? 'info' : 'warn'},
     trustProxy: true,
@@ -106,7 +106,7 @@ fastify.after(async () => {
 ### Add Festify routes
 ([About Fastify hooks](https://fastify.dev/docs/latest/Reference/Hooks/))
 > local events will be relayed to your websocket connections and to decentralized servers as well
-```ecmascript 6
+```javascript
 //...
 const routes = [];
 // From internal to self sockets and emit to other servers, and his sockets
@@ -126,7 +126,7 @@ routes.push({
 ### Handle messages from clients sockets
 
 [![filterByProcessName](https://img.shields.io/badge/eventbus-websocket_messagesHandler-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
-```ecmascript 6
+```javascript
 // override: handle messages from clients sockets
 EventBus.websocket.messagesHandler = (message, session, connection) => {
     // do something with message ...
@@ -157,7 +157,7 @@ He has to do something alone, in a decentralized environment of many servers and
 
 [![handshakes](https://img.shields.io/badge/eventbus-transport_handshakes-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
-```ecmascript 6
+```javascript
 await EventBus.transport.initialize(Config.redis)
     .filterByProcessName(false)
     .handshakes()
@@ -165,7 +165,7 @@ await EventBus.transport.initialize(Config.redis)
 
 [![onMasterChange](https://img.shields.io/badge/eventbus-transport_onMasterChange-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
 
-```ecmascript 6
+```javascript
 // Somewhere, in the place you need
 EventBus.transport.onMasterChange((isMain) => {
     console.log('isMain', isMain)
@@ -182,7 +182,7 @@ EventBus.transport.onMasterChange((isMain) => {
 
 #### Example 2
 
-```ecmascript 6
+```javascript
 await EventBus.transport.initialize(Config.redis)
     .filterByProcessName(false)
     .onMasterChange((isMain) => {
@@ -207,7 +207,9 @@ In the case of using the same Redis server for different projects
 (different databases, but there will be common alerts),
 it is better to additionally use filtering by the name of the
 desired process.
-> EventBus.transport.filterByProcessName(true)
+```javascript
+EventBus.transport.filterByProcessName(true)
+```
 
 #### PM2 processes list
 
@@ -223,7 +225,9 @@ desired process.
 
 If your decentralized processes have different names, but are a single
 entity of the microservices ecosystem, turn off filtering by process name:
-> EventBus.transport.filterByProcessName(false)
+```javascript
+EventBus.transport.filterByProcessName(false)
+```
 
 ### Dependencies
 
