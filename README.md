@@ -8,7 +8,7 @@ services located on decentralized servers (virtual machines), etc.
 
 The usual mechanism embedded in the process notification
 
-```ecmascript 6
+```javascript
 process.on('message', async function (packet) {
     /* do something with packet.data */
 })
