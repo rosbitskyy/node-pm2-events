@@ -1,7 +1,7 @@
 {
   "name": "node-pm2-events",
   "version": "1.2.29",
-  "description": "Local and decentralized instances eventbus with web socket addon",
+  "description": "EventBus for local and decentralized instances of the both for individual nodejs applications and as parts of pm2",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
