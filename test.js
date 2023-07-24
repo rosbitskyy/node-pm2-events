@@ -17,13 +17,12 @@ const Config = {
     isDev: true
 }
 
-const sleep =  (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
 async function doit() {
 
     console.log(EventBus.transport.toString())
-    return
 
     // internal events
     EventBus.on('target', (m) => {
@@ -31,6 +30,9 @@ async function doit() {
     })
     EventBus.send('target', {a: 'qwerty'}) // work
     EventBus.send('target2', {a: 'qwerty'}) // not work - not subscribed
+
+    return;
+
 
     // with distributed events (example: pm2 instances, single decentralized servers)
     // execute on one server and on some other(s)
