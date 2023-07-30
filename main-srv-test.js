@@ -25,6 +25,8 @@ const Config = {
  *  $ node main-srv-test.js
  *  $ node main-srv-test.js
  *  Alternately stop and enable different of them to see the result of changing the main service
+ *
+ *  Or read -> [Cluster Fork Node.js v20.5.0 documentation](https://nodejs.org/api/cluster.html)
  */
 
 async function doit() {
@@ -46,7 +48,7 @@ async function doit() {
     EventBus.transport.send(channelName, {awesomedata: 'some action'});
 
     // Somewhere, in the place you need
-    EventBus.transport.onMasterChange((isMain) => {
+    EventBus.transport.onPrimaryChange((isMain) => {
         console.log('isMain', isMain)
         if (isMain) {
             // Some unique event to be processed by the main server

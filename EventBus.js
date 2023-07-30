@@ -205,11 +205,18 @@ class Process {
     static #masterProcessId = Math.min(...Process.getInstansesIds());
 
     /**
-     * is PM2 master instance (for current pm2 VM, not decentralized)
-     * in case of local launch without PM2 - always true
+     * @deprecated - since v1.2.32
      * @return {boolean}
      */
     static get isPm2Master() {
+        return Process.isPm2Primary;
+    }
+    /**
+     * is PM2 primary instance (for current pm2 VM, not decentralized)
+     * in case of local launch without PM2 - always true
+     * @return {boolean}
+     */
+    static get isPm2Primary() {
         return Process.masterProcessId === Process.process_id || Process.process_id === Process.unrealId;
     }
 
@@ -372,7 +379,7 @@ class Transport {
     #duplex = null;
     #id = Process.id;
 
-    #isMaster = true;
+    #isPrimary = true;
 
     /**
      * Transport on ready state?
@@ -381,12 +388,31 @@ class Transport {
     get isReady() {
         return this.#publisher && this.#publisher.status === this.constant.READY;
     }
+    /**
+     * @deprecated - since v1.2.32
+     * @type {boolean}
+     */
+    isMaster = this.isPrimary;
+    /**
+     * @deprecated - since v1.2.32
+     * @type {*}
+     */
+    onMasterChange = this.onPrimaryChange;
 
     /**
+     * @type {boolean}
      * @return {boolean}
      */
-    get isMaster() {
-        return this.#isMaster
+    get isPrimary() {
+        return this.#isPrimary
+    }
+
+    /**
+     * @type {boolean}
+     * @return {boolean}
+     */
+    get isMain() {
+        return this.#isPrimary
     }
 
     /**
@@ -394,27 +420,27 @@ class Transport {
      * @param {string<Process.id>} id
      * @return {Transport}
      */
-    isMaster(id) {
-        this.#isMaster = this.#id === id;
-        if (this.#onMasterChange && typeof this.#onMasterChange === 'function') this.#onMasterChange(this.#isMaster);
+    #setIsPrimary(id) {
+        this.#isPrimary = this.#id === id;
+        if (this.#onPrimaryChange && typeof this.#onPrimaryChange === 'function') this.#onPrimaryChange(this.#isPrimary);
         return this;
     }
 
     /**
      * by default do nothing
-     * @param {boolean} isMaster
+     * @param {boolean} isPrimary
      */
-    #onMasterChange = (isMaster) => {
+    #onPrimaryChange = (isPrimary) => {
         /* Some unique event to be processed by the main server */
         /* register or unregister awesome event here */
         /* do awesome here */
     }
 
     /**
-     * @param {function(isMaster<boolean>)} callback
+     * @param {function(isPrimary<boolean>)} callback
      */
-    onMasterChange(callback) {
-        this.#onMasterChange = callback;
+    onPrimaryChange(callback) {
+        this.#onPrimaryChange = callback;
         return this;
     }
 
@@ -450,8 +476,8 @@ class Transport {
     isSameProcessName = (process_name) => process_name === Process.process_name;
 
     /**
-     * Register handshakes and change decentralised master server.
-     * There are no replicas - no slaves - only the MASTER and that's it.
+     * Register handshakes and change decentralised primary server.
+     * There are no replicas - no slaves - only the Primary and that's it.
      * He has to do something alone, in a decentralized environment of many servers and their variety of services
      * - including PM2 or not - it doesn't matter.
      * @return {Promise<Transport>}
@@ -475,7 +501,7 @@ class Transport {
             try {
                 if (channel !== this.constant.HANDSHAKE) return;
                 message = parse(message);
-                if (message.data.type === this.constant.type.iamhere) this.isMaster(message.sender.id);
+                if (message.data.type === this.constant.type.iamhere) this.#setIsPrimary(message.sender.id);
                 if (message.data.type === this.constant.type.bye && !this.isSameId(message.sender.id)) _send(this.constant.type.iamhere);
             } catch (e) {
                 console.error(e)
@@ -603,8 +629,8 @@ class Transport {
             ...this.processInfo,
             excludeAddress: this.#excludeAddress,
             filterByProcessName: this.#filterByProcessName,
-            isPM2Master: Process.isPm2Master,
-            isMaster: this.#isMaster,
+            isPM2Primary: Process.isPm2Primary,
+            isPrimary: this.#isPrimary,
         }
     }
 

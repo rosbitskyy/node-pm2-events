@@ -148,7 +148,7 @@ EventBus.websocket.messagesHandler = (message, session, connection) => {
 
 ### Register handshakes and change decentralised master/main server
 
-There are no replicas - no slaves - only the MASTER(Main) and that's it.
+There are no replicas - no slaves - only the Primary(Main) and that's it.
 He has to do something alone, in a decentralized environment of many servers and their variety of services
 
 - including PM2 or not - it doesn't matter.
@@ -167,7 +167,7 @@ await EventBus.transport.initialize(Config.redis)
 
 ```javascript
 // Somewhere, in the place you need
-EventBus.transport.onMasterChange((isMain) => {
+EventBus.transport.onPrimaryChange((isMain) => {
     console.log('isMain', isMain)
     if (isMain) {
         // Some unique event to be processed by the main server
@@ -185,7 +185,7 @@ EventBus.transport.onMasterChange((isMain) => {
 ```javascript
 await EventBus.transport.initialize(Config.redis)
     .filterByProcessName(false)
-    .onMasterChange((isMain) => {
+    .onPrimaryChange((isMain) => {
         console.log('isMain', isMain)
         if (isMain) {
             // Some unique event to be processed by the main server
@@ -232,3 +232,8 @@ EventBus.transport.filterByProcessName(false)
 ### Dependencies
 
 [![Redis](https://img.shields.io/badge/Redis-ioredis-blue?logo=npm)](https://www.npmjs.com/package/ioredis)
+[![](https://img.shields.io/badge/Node.js-v16.x.x-blue?logo=nodedotjs)](https://nodejs.org)
+
+#### Read more (Recommendation)
+
+[![nodedotjs](https://img.shields.io/badge/Node.js-Cluster_--_Node.js_v20.x.x_documentation-blue?logo=nodedotjs)](https://nodejs.org/api/cluster.html)
