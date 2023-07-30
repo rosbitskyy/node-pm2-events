@@ -22,6 +22,11 @@ async function doit() {
 
     console.log(EventBus.transport.toString())
 
+    if (!Config.redis.port) {
+        console.error(EventBus.process.process_name, 'Specify your settings for the Redis server')
+        process.exit(1)
+    }
+
     await EventBus.transport.initialize(Config.redis)
         .filterByProcessName(false)
         .handshakes()
