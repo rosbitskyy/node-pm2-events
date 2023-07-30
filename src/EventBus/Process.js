@@ -13,8 +13,6 @@ class Process {
     static #unrealId = Number(`0x${getRandomUID()}`);
     static #process_id = (process.env.pm_id || Process.unrealId);
     static #process_name = (process.env.name || getRandomUID());
-    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
-        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
 
     static get masterProcessId() {
         return Number(Process.#masterProcessId);
@@ -33,37 +31,6 @@ class Process {
     }
 
     /**
-     * @return {string}
-     */
-    static get id() {
-        return this.#id;
-    }
-
-    /**
-     * @return {{}|NetworkInterfaceInfo}
-     */
-    static get interface() {
-        return Process.#interface;
-    }
-
-    /**
-     * @deprecated - since v1.2.32
-     * @return {boolean}
-     */
-    static get isPm2Master() {
-        return Process.isPm2Primary;
-    }
-
-    /**
-     * is PM2 primary instance (for current pm2 VM, not decentralized)
-     * in case of local launch without PM2 - always true
-     * @return {boolean}
-     */
-    static get isPm2Primary() {
-        return Process.masterProcessId === Process.process_id || Process.process_id === Process.unrealId;
-    }
-
-    /**
      * @return {{}|NetworkInterfaceInfo}
      */
     static #_interface = () => {
@@ -76,8 +43,24 @@ class Process {
         }
         return {};
     }
-
     static #interface = Process.#_interface();
+
+    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
+        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
+
+    /**
+     * @return {string}
+     */
+    static get id() {
+        return this.#id;
+    }
+
+    /**
+     * @return {{}|NetworkInterfaceInfo}
+     */
+    static get interface() {
+        return Process.#interface;
+    }
 
     /**
      * @return {any[]|number[]}
@@ -101,6 +84,23 @@ class Process {
      * @type {number}
      */
     static #masterProcessId = Math.min(...Process.getInstansesIds());
+
+    /**
+     * @deprecated - since v1.2.32
+     * @return {boolean}
+     */
+    static get isPm2Master() {
+        return Process.isPm2Primary;
+    }
+
+    /**
+     * is PM2 primary instance (for current pm2 VM, not decentralized)
+     * in case of local launch without PM2 - always true
+     * @return {boolean}
+     */
+    static get isPm2Primary() {
+        return Process.masterProcessId === Process.process_id || Process.process_id === Process.unrealId;
+    }
 
 }
 
