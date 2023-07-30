@@ -125,7 +125,7 @@ routes.push({
 
 ### Handle messages from clients sockets
 
-[![filterByProcessName](https://img.shields.io/badge/eventbus-websocket_messagesHandler-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+[![filterByProcessName](https://img.shields.io/badge/eventbus-websocket_messagesHandler-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/tests/)
 ```javascript
 // override: handle messages from clients sockets
 EventBus.websocket.messagesHandler = (message, session, connection) => {
@@ -155,7 +155,7 @@ He has to do something alone, in a decentralized environment of many servers and
 
 #### Example 1
 
-[![handshakes](https://img.shields.io/badge/eventbus-transport_handshakes-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+[![handshakes](https://img.shields.io/badge/eventbus-transport_handshakes-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/tests/eventbus-transport-become-primary.js)
 
 ```javascript
 await EventBus.transport.initialize(Config.redis)
@@ -163,7 +163,7 @@ await EventBus.transport.initialize(Config.redis)
     .handshakes()
 ```
 
-[![onMasterChange](https://img.shields.io/badge/eventbus-transport_onMasterChange-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+[![onMasterChange](https://img.shields.io/badge/eventbus-transport_onPrimaryChange-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/tests/eventbus-transport-become-primary.js)
 
 ```javascript
 // Somewhere, in the place you need
