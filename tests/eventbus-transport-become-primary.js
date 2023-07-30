@@ -48,7 +48,7 @@ async function doit() {
 
             // example
             for (let i = 0; i < 5; i++) {
-                if (!EventBus.transport.isPrimary) break; // isPrimary !== EventBus.transport.isPrimary if onPrimaryChange again
+                if (!EventBus.transport.isPrimary) break; // is it still the main one?
                 EventBus.transport.send(channelName, {
                     from: 'Primary',
                     primary: EventBus.process.process_name,
