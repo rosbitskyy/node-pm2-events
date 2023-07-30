@@ -4,5 +4,5 @@
  * @email: rosbitskyy@gmail.com
  */
 
-const EventBus = require('./src')
+const EventBus = require('./EventBus')
 module.exports = EventBus;

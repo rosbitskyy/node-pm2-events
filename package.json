@@ -1,10 +1,11 @@
 {
   "name": "node-pm2-events",
-  "version": "1.2.33",
+  "version": "1.2.34",
   "description": "EventBus for local and decentralized instances of the both for individual nodejs applications and as parts of pm2",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test:local": "node tests/eventbus-local-process.js",
+    "test:transport": "node tests/eventbus-transport-become-primary.js & node tests/eventbus-transport-become-primary.js"
   },
   "repository": {
     "type": "git",
