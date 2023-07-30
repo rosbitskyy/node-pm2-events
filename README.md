@@ -62,7 +62,7 @@ Try using a free [Redis server](https://app.redislabs.com/)
 > Execute on one server and on some other(s)
 > - Because the server that sends the data itself does not receive it
 
-[![initialize](https://img.shields.io/badge/eventbus-transport_initialize-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+[![initialize](https://img.shields.io/badge/eventbus-transport_initialize-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/tests/)
 
 ```javascript
 // execute on one server and on some other(s)
@@ -201,7 +201,7 @@ await EventBus.transport.initialize(Config.redis)
 
 #### filterByProcessName
 
-[![filterByProcessName](https://img.shields.io/badge/eventbus-transport_filterByProcessName-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/main-srv-test.js)
+[![filterByProcessName](https://img.shields.io/badge/eventbus-transport_filterByProcessName-blue)](https://github.com/rosbitskyy/node-pm2-events/blob/main/tests/)
 
 In the case of using the same Redis server for different projects
 (different databases, but there will be common alerts),
