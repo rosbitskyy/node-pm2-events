@@ -31,7 +31,6 @@ class WebSocket {
      * @param {object} session - user session data
      * @param {object} connection - wss connection
      */
-        // by default - internal send event
     #messagesHandler = (message, session, connection) =>
         this.EventBus.send('websocketHandler', {message, session, connection});
 
@@ -64,7 +63,7 @@ class WebSocket {
      * @return {string|*}
      */
     stringify = (v) => {
-        return {}.constructor === v.constructor || [].constructor === v.constructor ? JSON.stringify(v) : v;
+        return JSON.stringify(v);
     }
 
     /**
@@ -77,6 +76,7 @@ class WebSocket {
             for (let connection of this.#connections.values()) try {
                 connection.socket.send(message);
             } catch (e) {
+                console.error(e)
             }
         }
         return this;
@@ -94,6 +94,7 @@ class WebSocket {
                 message = this.stringify(message);
                 connection.socket.send(message);
             } catch (e) {
+                console.error(e)
             }
         }
         return this;
