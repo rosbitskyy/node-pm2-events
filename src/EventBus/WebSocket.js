@@ -125,11 +125,12 @@ class WebSocket {
      */
     wsHandler = (connection, req) => {
         // after your AUTH handler fastify hook (preHandler: your auth method)
-        const session = (req.userdata || {_id: getRandomUID()});
-        const socket_id = session._id.toString() + getRandomUID();
+        const session = ((req.userdata || req.session) || {_id: getRandomUID()});
+        const socket_id = session._id.toString() + '-' + getRandomUID();
         this.removeConnection(socket_id);
         this.addConnection(socket_id, connection);
-        connection.setEncoding('utf8')
+        connection.setEncoding('utf8');
+        this.#sendbox && console.log('ws connected', session || req.ip, 'id', socket_id)
         connection.socket.pong = () => connection.socket.send(JSON.stringify({type: 'pong', data: '🇺🇦'}));
         connection.socket.on('message', (message) => {
             try {
