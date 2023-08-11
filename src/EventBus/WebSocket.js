@@ -8,6 +8,11 @@ const {parse, getRandomUID} = require('./utils');
 
 class WebSocket {
     #connections = new Map();
+    #sendbox = false;
+
+    setSendbox(v) {
+        this.#sendbox = !!v;
+    }
 
     /**
      * @param {EventBus} eventBus
@@ -40,7 +45,7 @@ class WebSocket {
      */
     on(channel) {
         this.EventBus.on(channel, (message) => {
-            console.log('ws catch internal', channel, message)
+            this.#sendbox && console.log('ws catch internal', channel, message)
             this.send(message); // catch internal event and send broadcast to connected clients
             this.EventBus.transport.send(channel, message); // send to other server instances
         });
@@ -74,11 +79,11 @@ class WebSocket {
     send = (message) => {
         if (message) {
             message = this.stringify(message);
-            console.log('ws send', message)
+            this.#sendbox && console.log('ws send', message)
             for (let connection of this.#connections.values()) try {
                 connection.socket.send(message);
             } catch (e) {
-                console.error(e)
+                this.#sendbox && console.error(e)
             }
         }
         return this;
@@ -96,7 +101,7 @@ class WebSocket {
                 message = this.stringify(message);
                 connection.socket.send(message);
             } catch (e) {
-                console.error(e)
+                this.#sendbox && console.error(e)
             }
         }
         return this;

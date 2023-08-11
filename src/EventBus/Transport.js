@@ -33,6 +33,12 @@ class Transport {
     #excludeAddress = new Set();
     #requestId = 1;
 
+    #sendbox = false;
+
+    setSendbox(v) {
+        this.#sendbox = !!v;
+    }
+
     /**
      * @param {EventBus} eventBus
      */
@@ -253,7 +259,7 @@ class Transport {
                     this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name) ||
                     this.#excludeAddress.has(message.sender.address)
                 ) return;
-                console.log('transport on callback', channel, message)
+                this.#sendbox && console.log('transport on callback', channel, message)
                 callback(ch, message.data);
             } catch (e) {
                 console.error(e)
@@ -276,7 +282,7 @@ class Transport {
             data: message,
             sender: this.processInfo
         });
-        console.log('transport send', channel, message)
+        this.#sendbox && console.log('transport send', channel, message)
         this.#publisher.publish(channel, message);
     }
 
@@ -302,7 +308,7 @@ class Transport {
      * @param {string} state
      */
     #onStateChange = (name, state) => {
-        // console.log(this.#name, name, 'status:', state)
+        this.#sendbox && console.log(this.#name, name, 'status:', state)
     };
 }
 

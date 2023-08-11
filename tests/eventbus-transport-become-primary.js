@@ -31,6 +31,9 @@ async function doit() {
         .filterByProcessName(false)
         .handshakes()
 
+    EventBus.transport.setSendbox(true)
+    EventBus.websocket.setSendbox(true)
+
     const channelName = 'AweSome';
     EventBus.transport.on(channelName, (channelName, message) => {
         console.log('process', EventBus.process.process_name, 'receive', message)
