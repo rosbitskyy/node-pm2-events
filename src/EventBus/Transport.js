@@ -253,6 +253,7 @@ class Transport {
                     this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name) ||
                     this.#excludeAddress.has(message.sender.address)
                 ) return;
+                console.log('transport on callback', channel, message)
                 callback(ch, message.data);
             } catch (e) {
                 console.error(e)
@@ -275,6 +276,7 @@ class Transport {
             data: message,
             sender: this.processInfo
         });
+        console.log('transport send', channel, message)
         this.#publisher.publish(channel, message);
     }
 

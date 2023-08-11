@@ -40,6 +40,7 @@ class WebSocket {
      */
     on(channel) {
         this.EventBus.on(channel, (message) => {
+            console.log('ws catch internal', channel, message)
             this.send(message); // catch internal event and send broadcast to connected clients
             this.EventBus.transport.send(channel, message); // send to other server instances
         });
@@ -73,6 +74,7 @@ class WebSocket {
     send = (message) => {
         if (message) {
             message = this.stringify(message);
+            console.log('ws send', message)
             for (let connection of this.#connections.values()) try {
                 connection.socket.send(message);
             } catch (e) {
