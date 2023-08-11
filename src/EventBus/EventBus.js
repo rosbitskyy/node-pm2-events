@@ -11,6 +11,14 @@ const Transport = require('./Transport');
 
 class EventBus extends EventEmitter {
 
+    #sendbox = false;
+
+    setSendbox(v) {
+        this.#sendbox = !!v;
+        this.transport.setSendbox(v)
+        this.websocket.setSendbox(v)
+    }
+
     constructor() {
         super();
         this.process = Process;
