@@ -69,7 +69,7 @@ class WebSocket {
      * @return {string|*}
      */
     stringify = (v) => {
-        return JSON.stringify(v);
+        return typeof v === 'string' ? v : JSON.stringify(v);
     }
 
     /**
