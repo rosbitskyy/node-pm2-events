@@ -12,6 +12,17 @@ const Transport = require('./Transport');
 class EventBus extends EventEmitter {
 
     #sendbox = false;
+    static #instance = null;
+
+    static get instance() {
+        return this.getInstance()
+    }
+
+    static getInstance() {
+        if (!this.#instance) this.#instance = new EventBus()
+        return this.#instance
+    }
+
 
     setSendbox(v) {
         this.#sendbox = !!v;
@@ -35,6 +46,5 @@ class EventBus extends EventEmitter {
     };
 }
 
-const event = new EventBus();
-
-module.exports = event;
+const instance = EventBus.instance;
+module.exports = instance;
