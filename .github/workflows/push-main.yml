@@ -30,3 +30,7 @@ jobs:
       - run: npm install --package-lock-only
       - run: npm ci
       - run: npm test
+        env:
+          REDIS_HOST: ${{secrets.REDIS_HOST}}
+          REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
+          REDIS_PORT: ${{secrets.REDIS_PORT}}

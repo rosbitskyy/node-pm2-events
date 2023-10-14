@@ -10,22 +10,16 @@ const {sleep} = require('../src/EventBus/utils')
 // Try using a free [Redis server](https://app.redislabs.com/)
 const Config = {
     redis: {
-        host: 'redis-port.take.country-side-slot-number.ec2.cloud.redislabs.com',
-        username: "XXXXXX",
-        password: "XXXXXX",
+        host: process.env.REDIS_HOST,
+        password: process.env.REDIS_PASSWORD,
         keepAlive: true,
-        port: 0
+        port: process.env.REDIS_PORT * 1
     },
 }
 
 async function doit() {
 
     console.log(EventBus.transport.toString())
-
-    if (!Config.redis.port) {
-        console.error(EventBus.process.process_name, 'Specify your settings for the Redis server')
-        process.exit(1)
-    }
 
     await EventBus.transport.initialize(Config.redis)
         .filterByProcessName(false)

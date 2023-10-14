@@ -4,8 +4,7 @@
   "description": "EventBus for local and decentralized instances of the both for individual nodejs applications and as parts of pm2",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:local",
-    "test2": "npm run test:local && npm run test:transport",
+    "test": "npm run test:local && npm run test:transport",
     "test:local": "node tests/eventbus-local-process.js",
     "test:transport": "node tests/eventbus-transport-become-primary.js & node tests/eventbus-transport-become-primary.js"
   },
