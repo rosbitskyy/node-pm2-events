@@ -48,7 +48,7 @@ async function doit() {
             })
 
             // example
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 2; i++) {
                 if (!EventBus.transport.isPrimary) break; // is it still the main one?
                 EventBus.transport.send(channelName, {
                     from: 'Primary',
@@ -63,7 +63,7 @@ async function doit() {
         }
     });
 
-    await sleep(20000);
+    await sleep(5000);
     process.exit(0)
 }
 
