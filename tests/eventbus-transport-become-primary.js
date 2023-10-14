@@ -21,7 +21,9 @@ async function doit() {
 
     console.log(EventBus.transport.toString())
 
+
     if (!Config.redis.port) process.exit(0)
+
 
     await EventBus.transport.initialize(Config.redis)
         .filterByProcessName(false)
