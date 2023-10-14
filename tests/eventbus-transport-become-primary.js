@@ -61,7 +61,10 @@ async function doit() {
             EventBus.transport.off('Contract');
             console.log(EventBus.process.process_name, 'isPrimary', isPrimary, 'Off unique event')
         }
-    })
+    });
+
+    await sleep(20000);
+    process.exit(0)
 }
 
 doit();
