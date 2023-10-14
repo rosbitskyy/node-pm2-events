@@ -20,8 +20,8 @@ const Config = {
 async function doit() {
 
     console.log(EventBus.transport.toString())
-    console.log(Config.redis)
-    process.exit(0)
+
+    if (!Config.redis.port) process.exit(0)
 
     await EventBus.transport.initialize(Config.redis)
         .filterByProcessName(false)
