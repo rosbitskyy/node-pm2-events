@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run test:local && npm run test:transport",
+    "test:cluster": "node tests/eventbus-cluster-node.js.v.20.js",
     "test:local": "node tests/eventbus-local-process.js",
     "test:transport": "node tests/eventbus-transport-become-primary.js & node tests/eventbus-transport-become-primary.js"
   },
