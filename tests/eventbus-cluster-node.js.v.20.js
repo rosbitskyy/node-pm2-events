@@ -15,30 +15,43 @@ const LocalAweSomeEvent = 'LocalAweSomeEvent';
 const channelName = 'AweSomeDecentralizedEvent';
 
 class Statistics {
-
-    localRecieve = 0;
-    transportRecieve = 0;
+    clusterSent = 0;
+    clusterReceive = 0;
+    localReceive = 0;
+    localSent = 0;
+    transportReceive = 0;
     transportSent = 0;
-
 }
 
 /**
  * @param {string} name
- * @param {Statistics} statistic
+ * @param {Statistics} stat
  */
-const registerProcessSignal = (name, statistic) => {
+const registerProcessSignal = (name, stat) => {
     console.log(name, `process ${process.pid} is running`);
     const events = [{event: 'exit', code: 0, name}, {event: 'SIGINT', code: 2, name}]
 
     for (let v of events) process.on(v.event, async () => {
-        console.log(v.name, 'process', v.event, process.pid, 'statistic', statistic);
-        if (!cluster.isPrimary) process.send(statistic);
-        else {
-            console.assert(statistic.transportSent === statistic.transportRecieve,
-                'Invalid number of sent and received traffic messages')
-            console.assert(statistic.localRecieve % 2 === 0, 'Invalid number of statistical classes')
+        console.log(v.name, 'process', v.event, process.pid, 'statistic', stat);
+        if (!cluster.isPrimary) {
+            stat.clusterSent++;
+            process.send(stat);
+        } else {
+            const checkIt = [
+                {name: 'Cluster', conditions: stat.clusterSent === stat.clusterReceive && stat.clusterSent === numCPUs},
+                {name: 'Local', conditions: stat.localSent === stat.localReceive - numCPUs}, // - receive once of every worker
+                {name: 'Transport', conditions: stat.transportSent === stat.transportReceive},
+                {name: 'Statistical', conditions: stat.localReceive % 2 === 0},
+            ];
+            const text = 'Invalid number of sent and received %o process messages';
+            for (let it of checkIt) {
+                if (!it.conditions) {
+                    console.log(text, v.name);
+                    process.exit(1);
+                }
+            }
         }
-        await sleep(200);
+        await sleep(200); // wait for console log
         process.exit(v.code)
     });
 }
@@ -57,6 +70,7 @@ const registerClusterEvents = (statistic) => {
          * @param {any} signal
          */
         (worker, message, signal) => {
+            statistic.clusterReceive++;
             for (let k of Object.keys(statistic)) if (!isNaN(statistic[k])) statistic[k] += message[k];
         });
 }
@@ -83,7 +97,7 @@ const registerDecentralizedEvents = async (name, statistic) => {
 
     EventBus.transport.on(channelName, (channelName, message) => {
         console.log(name, 'process', process.pid, EventBus.process.process_name, 'receive', message)
-        statistic.transportRecieve++;
+        statistic.transportReceive++;
     })
 
     EventBus.transport.onPrimaryChange(async (isPrimary) => {
@@ -92,7 +106,7 @@ const registerDecentralizedEvents = async (name, statistic) => {
             // Some unique event to be processed by the main server
             EventBus.transport.on('Contract', (ch, msg) => {
                 /* Do something with the contract */
-                statistic.transportRecieve++;
+                statistic.transportReceive++;
             })
 
             // example
@@ -105,7 +119,7 @@ const registerDecentralizedEvents = async (name, statistic) => {
                     name, pid: process.pid,
                 })
                 statistic.transportSent++;
-                await sleep(1000);
+                await sleep(200);
             }
         } else {
             EventBus.transport.off('Contract');
@@ -121,16 +135,22 @@ const registerDecentralizedEvents = async (name, statistic) => {
 const registerLocalEvents = (name, statistic) => {
     EventBus.once(LocalAweSomeEvent, (once) => {
         console.log(name, process.pid, 'once event', LocalAweSomeEvent, once)
-        statistic.localRecieve++
+        statistic.localReceive++
     })
     EventBus.on(LocalAweSomeEvent, (on) => {
         console.log(name, process.pid, 'on event', LocalAweSomeEvent, on)
-        statistic.localRecieve++
+        statistic.localReceive++
     })
 }
 
-const testLocalEvents = () => {
-    for (let i = 0; i < 5; i++) EventBus.send(LocalAweSomeEvent, {index: i})
+/**
+ * @param {Statistics} statistic
+ */
+const testLocalEvents = (statistic) => {
+    for (let i = 0; i < 5; i++) {
+        EventBus.send(LocalAweSomeEvent, {index: i});
+        ++statistic.localSent;
+    }
 }
 
 const start = async () => {
@@ -154,7 +174,7 @@ const start = async () => {
         registerLocalEvents(name, statistic)
         await registerDecentralizedEvents(name, statistic)
 
-        testLocalEvents()
+        testLocalEvents(statistic)
 
         await sleep(5000)
         process.exit(0)
