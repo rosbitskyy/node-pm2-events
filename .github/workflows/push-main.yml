@@ -11,16 +11,16 @@ on:
       - 'src/**'
       - 'tests/**'
 permissions:
-      contents: read
-      
+  contents: read
+
 jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20]
-        os: [macos-latest, ubuntu-latest]
+        node: [ 16, 18, 20 ]
+        os: [ macos-latest, ubuntu-latest ]
     name: Node ${{ matrix.node }} OS ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
