@@ -15,6 +15,8 @@ process.on('message', async function (packet) {
 ```
 does not include distributed virtual instances, but locally causes a pm2 instance crash under heavy load.
 
+☕️ [buy me a coffee](https://www.buymeacoffee.com/rosbitskyy.ruslan)
+
 ### Install
 
 ```shell
