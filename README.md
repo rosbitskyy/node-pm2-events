@@ -3,6 +3,7 @@
 [![os, nodes](https://github.com/rosbitskyy/node-pm2-events/actions/workflows/push-main.yml/badge.svg)](https://github.com/rosbitskyy/node-pm2-events/actions)
 [![npm version](https://img.shields.io/npm/v/node-pm2-events.svg)](https://www.npmjs.com/package/node-pm2-events)
 [![Downloads/month](https://img.shields.io/npm/dm/node-pm2-events.svg)](http://www.npmtrends.com/node-pm2-events)
+[![Vulnerabilities](https://snyk.io/test/npm/node-pm2-events/badge.svg)](https://snyk.io/test/npm/node-pm2-events)
 
 Data exchange between instances of pm2
 services located on decentralized servers (virtual machines), etc.
