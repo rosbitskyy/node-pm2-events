@@ -68,7 +68,7 @@ declare class Process {
      *         scopeid?: undefined;
      *         }|NetworkInterfaceInfo}
      */
-    static get interface(): any;
+    static get interface(): object | NetworkInterfaceInfo;
 
     /**
      * @deprecated - since v1.2.32
