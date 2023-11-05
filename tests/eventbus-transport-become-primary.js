@@ -5,7 +5,6 @@
 
 const EventBus = require('../src/EventBus');
 const {sleep} = require('../src/EventBus/utils')
-// const EventBus = require('node-pm2-events');
 
 // Try using a free [Redis server](https://app.redislabs.com/)
 const Config = {
@@ -37,7 +36,7 @@ async function doit() {
         console.log('process', EventBus.process.process_name, 'receive', message)
     })
 
-    EventBus.transport.send(channelName, {awesomedata: 'some action'});
+    await EventBus.transport.send(channelName, {awesomedata: 'some action'});
 
     EventBus.transport.onPrimaryChange(async (isPrimary) => {
         if (isPrimary) {
@@ -48,9 +47,9 @@ async function doit() {
             })
 
             // example
-            for (let i = 0; i < 2; i++) {
+            for (let i = 0; i < 5; i++) {
                 if (!EventBus.transport.isPrimary) break; // is it still the main one?
-                EventBus.transport.send(channelName, {
+                await EventBus.transport.send(channelName, {
                     from: 'Primary',
                     primary: EventBus.process.process_name,
                     to: 'other',

@@ -9,6 +9,9 @@ const Redis = require('ioredis');
 const {sleep, parse} = require('./utils');
 
 class Transport {
+    /**
+     * @type {{READY: string, subscriber: string, SIGINT: string, HANDSHAKE: string, publisher: string, type: {iamhere: string, bye: string}, message: string}}
+     */
     constant = {
         SIGINT: 'SIGINT',
         HANDSHAKE: 'handshake',
@@ -35,8 +38,12 @@ class Transport {
 
     #sendbox = false;
 
-    setSendbox(v) {
-        this.#sendbox = !!v;
+    /**
+     * Transport on ready state?
+     * @return {boolean}
+     */
+    get isReady() {
+        return this.#publisher && this.#publisher.status === this.constant.READY;
     }
 
     /**
@@ -50,11 +57,22 @@ class Transport {
     }
 
     /**
-     * Transport on ready state?
-     * @return {null|boolean}
+     * @return {{process_id: number, process_name: string, id: string, address: string;
+     *         netmask: string;
+     *         mac: string;
+     *         internal: boolean;
+     *         cidr: string | null;
+     *         family: string;
+     *         scopeid?: undefined;
+     *         }}
      */
-    get isReady() {
-        return this.#publisher && this.#publisher.status === this.constant.READY;
+    get processInfo() {
+        return {
+            id: this.#id,
+            process_name: this.#EventBus.process.process_name,
+            process_id: this.#EventBus.process.process_id,
+            ...this.#EventBus.process.interface
+        }
     }
 
     /**
@@ -73,18 +91,10 @@ class Transport {
         return this.#isPrimary
     }
 
-    get processInfo() {
-        return {
-            id: this.#id,
-            process_name: this.#EventBus.process.process_name,
-            process_id: this.#EventBus.process.process_id,
-            ...this.#EventBus.process.interface
-        }
-    }
-
     /**
      * Set callback on transport ready state changed
-     * @param {function(name<string>, state<string>)} callback
+     * @param {function(name:string, state:string)} callback
+     * @return {Transport}
      */
     set onStateChange(callback) {
         this.#onStateChange = callback;
@@ -92,8 +102,17 @@ class Transport {
     }
 
     /**
+     * @param {boolean} v
+     * @return {Transport}
+     */
+    setSendbox(v) {
+        this.#sendbox = !!v;
+        return this;
+    }
+
+    /**
      * Establish that this is the main process
-     * @param {string<EventBus.process.id>} id
+     * @param {string:EventBus.process.id} id
      * @return {Transport}
      */
     #setIsPrimary(id) {
@@ -113,7 +132,8 @@ class Transport {
     }
 
     /**
-     * @param {function(isPrimary<boolean>)} callback
+     * @param {function(isPrimary:boolean)} callback
+     * @return {Transport}
      */
     onPrimaryChange(callback) {
         this.#onPrimaryChange = callback;
@@ -245,7 +265,7 @@ class Transport {
 
     /**
      * @param {string} channel
-     * @param {function(channel, message<{channel, id, data, sender}>)} callback
+     * @param {function(channel:string, message:{channel:string, id:string, data:object, sender:object})} callback
      * @description msg - {channel, id, data: message,}
      */
     on(channel, callback) {
@@ -286,14 +306,17 @@ class Transport {
         this.#publisher.publish(channel, message);
     }
 
+    /**
+     * @return {string}
+     */
     toString() {
-        return {
+        return JSON.stringify({
             ...this.processInfo,
             excludeAddress: this.#excludeAddress,
             filterByProcessName: this.#filterByProcessName,
             isPM2Primary: this.#EventBus.process.isPm2Primary,
             isPrimary: this.#isPrimary,
-        }
+        })
     }
 
     #registerReadyState = () => {

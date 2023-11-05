@@ -10,8 +10,13 @@ class WebSocket {
     #connections = new Map();
     #sendbox = false;
 
+    /**
+     * @param {boolean} v
+     * @return {WebSocket}
+     */
     setSendbox(v) {
         this.#sendbox = !!v;
+        return this
     }
 
     /**

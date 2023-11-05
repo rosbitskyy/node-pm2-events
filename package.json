@@ -1,13 +1,15 @@
 {
   "name": "node-pm2-events",
-  "version": "1.2.44",
+  "version": "1.2.45",
   "description": "EventBus for local and decentralized instances of the both for individual nodejs applications and as parts of pm2",
   "main": "index.js",
+  "types": "types/index.d.ts",
   "scripts": {
-    "test": "npm run test:local && npm run test:transport",
+    "test": "npx tsd && npm run test:local && npm run test:transport",
     "test:cluster": "node tests/eventbus-cluster-node.js.v.20.js",
     "test:local": "node tests/eventbus-local-process.js",
-    "test:transport": "node tests/eventbus-transport-become-primary.js & node tests/eventbus-transport-become-primary.js"
+    "test:transport": "node tests/eventbus-transport-become-primary.js & node tests/eventbus-transport-become-primary.js",
+    "test:tsd": "npx tsd"
   },
   "repository": {
     "type": "git",
@@ -29,5 +31,13 @@
   "license": "MIT",
   "dependencies": {
     "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "typescript": "^5.2.2",
+    "tsd": "^0.29.0",
+    "@types/node": "^20.8.10"
   }
 }
