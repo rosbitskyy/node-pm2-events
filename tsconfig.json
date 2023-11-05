@@ -2,7 +2,7 @@
   // npx -p typescript tsc
   // from: https://www.typescriptlang.org/docs/handbook/declaration-files/dts-from-js.html
   "include": [
-    "*.js"
+    "src/*.js"
   ],
   "compilerOptions": {
     // Tells TypeScript to read JS files, as
