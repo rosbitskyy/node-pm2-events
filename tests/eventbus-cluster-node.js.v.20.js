@@ -48,7 +48,7 @@ const registerProcessSignal = (name, stat) => {
                 if (!it.conditions) {
                     console.log(text, v.name);
                     // can be error with free redis service access
-                    //process.exit(1);
+                    process.exit(1);
                 }
             }
         }
