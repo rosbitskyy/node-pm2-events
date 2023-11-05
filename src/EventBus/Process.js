@@ -10,76 +10,28 @@ const {parse, getRandomUID} = require('./utils');
 
 class Process {
 
-    /**
-     * @type {number}
-     */
     static #unrealId = Number(`0x${getRandomUID()}`);
-    /**
-     * @type {number}
-     */
-    static #process_id = Number(process.env.pm_id || Process.unrealId);
-    /**
-     * @type {string}
-     */
-    static #process_name = String(process.env.name || getRandomUID());
-    /**
-     * @type {string}
-     */
-    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
-        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
+    static #process_id = (process.env.pm_id || Process.unrealId);
+    static #process_name = (process.env.name || getRandomUID());
 
-    /**
-     * @return {number}
-     */
     static get masterProcessId() {
         return Number(Process.#masterProcessId);
     }
 
-    /**
-     * @return {number}
-     */
     static get unrealId() {
         return Number(Process.#unrealId);
     }
 
-    /**
-     * @return {number}
-     */
     static get process_id() {
         return Number(Process.#process_id);
     }
 
-    /**
-     * @return {string}
-     */
     static get process_name() {
         return Process.#process_name;
     }
-    static #interface = Process.#_interface();
 
     /**
-     * @return {{address: string;
-     *         netmask: string;
-     *         mac: string;
-     *         internal: boolean;
-     *         cidr: string | null;
-     *         family: string;
-     *         scopeid?: undefined;
-     *         }|NetworkInterfaceInfo}
-     */
-    static get interface() {
-        return Process.#interface;
-    }
-
-    /**
-     * @return {string}
-     */
-    static get id() {
-        return this.#id;
-    }
-
-    /**
-     * @return {object|NetworkInterfaceInfo}
+     * @return {{}|NetworkInterfaceInfo}
      */
     static #_interface = () => {
         const interfaces = require('os').networkInterfaces();
@@ -91,9 +43,27 @@ class Process {
         }
         return {};
     }
+    static #interface = Process.#_interface();
+
+    static #id = ([Process.interface.mac, Process.interface.address, Process.process_name,
+        Process.process_id, getRandomUID()].toString().replaceAll(/[^0-9a-f]/g, ''));
 
     /**
-     * @return {number[]}
+     * @return {string}
+     */
+    static get id() {
+        return this.#id;
+    }
+
+    /**
+     * @return {{}|NetworkInterfaceInfo}
+     */
+    static get interface() {
+        return Process.#interface;
+    }
+
+    /**
+     * @return {any[]|number[]}
      */
     static getInstansesIds = () => {
         try {
