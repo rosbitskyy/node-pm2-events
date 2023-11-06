@@ -333,6 +333,14 @@ class Transport {
     #onStateChange = (name, state) => {
         this.#sendbox && console.log(this.#name, name, 'status:', state)
     };
+
+    /**
+     * @param {boolean|null} reconnect
+     */
+    disconnect(reconnect) {
+        this.#publisher.disconnect(false)
+        this.#subscriber.disconnect(false)
+    }
 }
 
 module.exports = Transport;

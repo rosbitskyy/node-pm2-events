@@ -1,15 +1,17 @@
 {
   "name": "node-pm2-events",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "EventBus for local and decentralized instances of the both for individual nodejs applications and as parts of pm2",
   "main": "index.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "test": "npx tsd && npm run test:local && npm run test:transport",
+    "test": "npx tsd && npm run test:local && npm run test:transport && npm run test:ws",
     "test:cluster": "node tests/eventbus-cluster-node.js.v.20.js",
-    "test:local": "node tests/eventbus-local-process.js",
-    "test:transport": "node tests/eventbus-transport-become-primary.js & node tests/eventbus-transport-become-primary.js",
-    "test:tsd": "npx tsd"
+    "test:ws": "node tests/eventbus-websocket-emul.test.js",
+    "test:local": "node tests/eventbus-local-process.test.js",
+    "test:transport": "node tests/eventbus-transport-become-primary.test.js & node tests/eventbus-transport-become-primary.test.js",
+    "test:tsd": "npx tsd",
+    "test:mocha": "mocha tests/*.test.js"
   },
   "repository": {
     "type": "git",

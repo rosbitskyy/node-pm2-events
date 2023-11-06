@@ -9,6 +9,8 @@ const {sleep} = require('../src/EventBus/utils')
 const cluster = require('cluster');
 const https = require('https');
 const {availableParallelism} = require('os');
+const {describe, it} = require("node:test");
+const assert = require("node:assert");
 
 const numCPUs = Math.max(2, Math.min(2, availableParallelism()));
 const LocalAweSomeEvent = 'LocalAweSomeEvent';
@@ -91,10 +93,11 @@ const registerDecentralizedEvents = async (name, statistic) => {
     }
     if (!Config.redis.port) process.exit(1)
 
+    EventBus.setSendbox(true)
     await EventBus.transport.initialize(Config.redis)
         .filterByProcessName(false)
         .handshakes()
-    EventBus.transport.setSendbox(true)
+
 
     EventBus.transport.on(channelName, (channelName, message) => {
         console.log(name, 'process', process.pid, EventBus.process.process_name, 'receive', message)
@@ -155,8 +158,9 @@ const testLocalEvents = (statistic) => {
 }
 
 const start = async () => {
+    let statistic;
     if (cluster.isPrimary) {
-        const statistic = new Statistics();
+        statistic = new Statistics();
         registerProcessSignal('Cluster', statistic)
         for (let i = 0; i < numCPUs; i++) cluster.fork();
         registerClusterEvents(statistic)
@@ -168,18 +172,23 @@ const start = async () => {
             res.end('hello world\n');
         }).listen(8080);
 
-
         const name = 'Worker';
-        const statistic = new Statistics();
+        statistic = new Statistics();
         registerProcessSignal(name, statistic)
         registerLocalEvents(name, statistic)
         await registerDecentralizedEvents(name, statistic)
-
         testLocalEvents(statistic)
 
         await sleep(5000)
         process.exit(0)
     }
+
+    describe('EventBus', () => {
+        it('local events count', () => assert.equal(statistic.localReceive, 0))
+        it('local events count', () => assert.equal(statistic.localSent, 0))
+        it('local events count', () => assert.equal(statistic.transportReceive, 0))
+        it('local events count', () => assert.equal(statistic.transportSent, 0))
+    })
 }
 
 start();

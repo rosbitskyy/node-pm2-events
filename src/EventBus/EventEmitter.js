@@ -11,10 +11,11 @@ class EventEmitter {
     #maxEvents = Infinity;
     #maxListeners = Infinity;
     #warn = {};
-    addListener = this.on;
-    removeListener = this.off;
+
 
     constructor() {
+        this.addListener = this.on;
+        this.removeListener = this.off;
     }
 
     setMaxListeners(n) {

@@ -143,6 +143,7 @@ class WebSocket {
                 if (message.type === 'ping') connection.socket.pong();
                 else if (this.#messagesHandler) this.#messagesHandler(message, {...session, socket_id}, connection)
             } catch (e) {
+                console.error(e)
             }
         });
         connection.socket.on('close', () => this.removeConnection(socket_id));

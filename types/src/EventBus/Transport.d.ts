@@ -176,6 +176,8 @@ declare class Transport {
      * @return {string}
      */
     toString(): string;
+
+    disconnect(reconnect?: boolean): void;
 }
 
 //# sourceMappingURL=Transport.d.ts.map
