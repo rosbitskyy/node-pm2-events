@@ -213,6 +213,7 @@ class Transport {
      */
     waitingConnection = async () => {
         while (this.#duplex.some(it => it.status !== this.constant.READY)) await sleep(this.#wto / this.#wtd);
+        return true
     }
 
     /**
