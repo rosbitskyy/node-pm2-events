@@ -5,8 +5,8 @@
 [![Downloads/month](https://img.shields.io/npm/dm/node-pm2-events.svg)](http://www.npmtrends.com/node-pm2-events)
 [![Vulnerabilities](https://snyk.io/test/npm/node-pm2-events/badge.svg)](https://snyk.io/test/npm/node-pm2-events)
 
-Data exchange between instances of pm2
-services located on decentralized servers (virtual machines), etc.
+Data exchange between services located on decentralized servers,
+node cluster forks, pm2 instances etc.
 
 The usual mechanism embedded in the process notification
 
