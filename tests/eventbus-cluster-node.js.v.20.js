@@ -11,7 +11,7 @@ const https = require('https');
 const {availableParallelism} = require('os');
 const {describe, it} = require("node:test");
 const assert = require("node:assert");
-
+require('dotenv').config();
 const numCPUs = Math.max(2, Math.min(2, availableParallelism()));
 const LocalAweSomeEvent = 'LocalAweSomeEvent';
 const channelName = 'AweSomeDecentralizedEvent';
@@ -180,6 +180,7 @@ const start = async () => {
         testLocalEvents(statistic)
 
         await sleep(5000)
+        EventBus.transport.disconnect()
         process.exit(0)
     }
 

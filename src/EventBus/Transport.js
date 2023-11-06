@@ -337,7 +337,7 @@ class Transport {
     /**
      * @param {boolean|null} reconnect
      */
-    disconnect(reconnect) {
+    disconnect(reconnect = false) {
         this.#publisher.disconnect(false)
         this.#subscriber.disconnect(false)
     }
