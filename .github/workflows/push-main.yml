@@ -36,17 +36,22 @@ jobs:
           REDIS_PORT: ${{secrets.REDIS_PORT}}
 
   cluster:
-    name: Cluster with EventBus case
     needs:
       - test
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [ 21 ]
+        os: [ ubuntu-latest ]
     permissions:
       contents: read
+    name: Cluster Node ${{ matrix.node }} ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: ${{ matrix.node }}
       - run: npm install --package-lock-only
       - run: npm ci
       - run: npm run test:cluster
