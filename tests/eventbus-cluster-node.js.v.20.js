@@ -180,7 +180,7 @@ const start = async () => {
         testLocalEvents(statistic)
 
         await sleep(5000)
-        EventBus.transport.disconnect()
+        // EventBus.transport.disconnect()
         process.exit(0)
     }
 
