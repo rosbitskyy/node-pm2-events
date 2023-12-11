@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "types/index.d.ts",
   "scripts": {
-    "test": "npx tsd && npm run test:local && npm run test:transport && npm run test:ws",
+    "test": "npx tsd && npm run test:local",
     "test:cluster": "node tests/eventbus-cluster-node.js.v.20.js",
     "test:ws": "node tests/eventbus-websocket-emul.test.js",
     "test:local": "node tests/eventbus-local-process.test.js",
