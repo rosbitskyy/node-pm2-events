@@ -13,7 +13,7 @@ class Transport {
      * @type {{READY: string, subscriber: string, SIGINT: string, HANDSHAKE: string, publisher: string, type: {iamhere: string, bye: string}, message: string}}
      */
     constant = {
-        SIGINT: 'beforeExit',
+        SIGINT: 'SIGINT',
         HANDSHAKE: 'handshake',
         READY: 'ready',
         type: {iamhere: 'im', bye: 'bye',},
