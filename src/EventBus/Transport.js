@@ -13,6 +13,7 @@ class Transport {
      * @type {{READY: string, subscriber: string, SIGINT: string, HANDSHAKE: string, publisher: string, type: {iamhere: string, bye: string}, message: string}}
      */
     constant = {
+        signals: ['SIGTERM', 'SIGINT'],
         SIGINT: 'SIGINT',
         HANDSHAKE: 'handshake',
         READY: 'ready',
@@ -181,13 +182,15 @@ class Transport {
      */
     async handshakes() {
         const _send = (v) => this.isReady && this.send(this.constant.HANDSHAKE, {type: v});
-        process.on(this.constant.SIGINT, async () => {
-            console.log(new Date().toLocaleTimeString(), this.constant.SIGINT, Transport.name, this.#id);
-            this.off(this.constant.HANDSHAKE);
-            _send(this.constant.type.bye)
-            await sleep(1000)
-            process.exit(0)
-        });
+        for (let signal of this.constant.signals) {
+            process.on(signal, async () => {
+                console.log(new Date().toLocaleTimeString(), signal, Transport.name, this.#id);
+                this.off(this.constant.HANDSHAKE);
+                _send(this.constant.type.bye)
+                await sleep(1000)
+                process.exit(0)
+            });
+        }
         await this.waitingConnection();
 
         this.#subscriber.on(this.constant.message, async (channel, message) => {
