@@ -9,6 +9,14 @@ const Redis = require('ioredis');
 const {sleep, parse} = require('./utils');
 
 class Transport {
+    get publisher() {
+        return this.#publisher;
+    }
+
+    get subscriber() {
+        return this.#subscriber;
+    }
+
     /**
      * @type {{READY: string, subscriber: string, SIGINT: string, HANDSHAKE: string, publisher: string, type: {iamhere: string, bye: string}, message: string}}
      */
