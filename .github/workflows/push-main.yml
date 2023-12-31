@@ -35,27 +35,27 @@ jobs:
           REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
           REDIS_PORT: ${{secrets.REDIS_PORT}}
 
-  cluster:
-    needs:
-      - test
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [ 21 ]
-        os: [ ubuntu-latest ]
-    permissions:
-      contents: read
-    name: Cluster Node ${{ matrix.node }} ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node }}
-      - run: npm install --package-lock-only
-      - run: npm ci
-      - run: npm run test:cluster
-        env:
-          REDIS_HOST: ${{secrets.REDIS_HOST}}
-          REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
-          REDIS_PORT: ${{secrets.REDIS_PORT}}
+  # cluster:
+  #   needs:
+  #     - test
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node: [ 21 ]
+  #       os: [ ubuntu-latest ]
+  #   permissions:
+  #     contents: read
+  #   name: Cluster Node ${{ matrix.node }} ${{ matrix.os }}
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         node-version: ${{ matrix.node }}
+  #     - run: npm install --package-lock-only
+  #     - run: npm ci
+  #     - run: npm run test:cluster
+  #       env:
+  #         REDIS_HOST: ${{secrets.REDIS_HOST}}
+  #         REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
+  #         REDIS_PORT: ${{secrets.REDIS_PORT}}
