@@ -282,8 +282,7 @@ class Transport {
      * @return {boolean} - True if the message is not confirmed, false otherwise.
      */
     #notConfirmedMessage(message) {
-        return this.isSameId(message.sender.id) ||
-            (this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name)) ||
+        return (this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name)) ||
             this.#excludeAddress.has(message.sender.address)
     }
 
@@ -299,7 +298,7 @@ class Transport {
                 // filter by exclusion method
                 if (channel !== ch) return;
                 message = parse(message);
-                if (this.#notConfirmedMessage(message)) return;
+                if (this.isSameId(message.sender.id) || this.#notConfirmedMessage(message)) return;
                 this.#sendbox && console.log('transport on callback', channel, message)
                 callback(ch, message.data);
             } catch (e) {
