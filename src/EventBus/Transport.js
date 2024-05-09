@@ -9,14 +9,6 @@ const Redis = require('ioredis');
 const {sleep, parse} = require('./utils');
 
 class Transport {
-    get publisher() {
-        return this.#publisher;
-    }
-
-    get subscriber() {
-        return this.#subscriber;
-    }
-
     /**
      * @type {{READY: string, subscriber: string, SIGINT: string, HANDSHAKE: string, publisher: string, type: {iamhere: string, bye: string}, message: string}}
      */
@@ -39,21 +31,11 @@ class Transport {
     #name;
     #id;
     #EventBus;
-
     #isPrimary = true;
     #filterByProcessName = true;
     #excludeAddress = new Set();
     #requestId = 1;
-
     #sendbox = false;
-
-    /**
-     * Transport on ready state?
-     * @return {boolean}
-     */
-    get isReady() {
-        return this.#publisher && this.#publisher.status === this.constant.READY;
-    }
 
     /**
      * @param {EventBus} eventBus
@@ -63,6 +45,22 @@ class Transport {
         this.#duplex = [this.#publisher, this.#subscriber];
         this.#name = 'EventBus Transport ' + eventBus.process.process_id;
         this.#id = eventBus.process.id;
+    }
+
+    get publisher() {
+        return this.#publisher;
+    }
+
+    get subscriber() {
+        return this.#subscriber;
+    }
+
+    /**
+     * Transport on ready state?
+     * @return {boolean}
+     */
+    get isReady() {
+        return this.#publisher && this.#publisher.status === this.constant.READY;
     }
 
     /**
@@ -205,6 +203,7 @@ class Transport {
             try {
                 if (channel !== this.constant.HANDSHAKE) return;
                 message = parse(message);
+                if (this.#notConfirmedMessage(message)) return;
                 if (message.data.type === this.constant.type.iamhere) this.#setIsPrimary(message.sender.id);
                 if (message.data.type === this.constant.type.bye && !this.isSameId(message.sender.id)) _send(this.constant.type.iamhere);
             } catch (e) {
@@ -276,6 +275,19 @@ class Transport {
     }
 
     /**
+     * Checks if the message is a not confirmed message based on various conditions.
+     *
+     * @param {Object} message - The message object containing sender details.
+     *
+     * @return {boolean} - True if the message is not confirmed, false otherwise.
+     */
+    #notConfirmedMessage(message) {
+        return this.isSameId(message.sender.id) ||
+            (this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name)) ||
+            this.#excludeAddress.has(message.sender.address)
+    }
+
+    /**
      * @param {string} channel
      * @param {function(channel:string, message:{channel:string, id:string, data:object, sender:object})} callback
      * @description msg - {channel, id, data: message,}
@@ -287,10 +299,7 @@ class Transport {
                 // filter by exclusion method
                 if (channel !== ch) return;
                 message = parse(message);
-                if (this.isSameId(message.sender.id) ||
-                    this.#filterByProcessName && !this.isSameProcessName(message.sender.process_name) ||
-                    this.#excludeAddress.has(message.sender.address)
-                ) return;
+                if (this.#notConfirmedMessage(message)) return;
                 this.#sendbox && console.log('transport on callback', channel, message)
                 callback(ch, message.data);
             } catch (e) {
