@@ -203,8 +203,10 @@ class Transport {
             try {
                 if (channel !== this.constant.HANDSHAKE) return;
                 message = parse(message);
+                // self message confirmed
                 if (this.#notConfirmedMessage(message)) return;
                 if (message.data.type === this.constant.type.iamhere) this.#setIsPrimary(message.sender.id);
+                // self message are not confirmed
                 if (message.data.type === this.constant.type.bye && !this.isSameId(message.sender.id)) _send(this.constant.type.iamhere);
             } catch (e) {
                 console.error(e)
